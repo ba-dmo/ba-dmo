@@ -52,4 +52,17 @@ public static class Db
         CancellationToken cancellationToken = default) =>
         connection.ExecuteAsync(
             new CommandDefinition(sql, parameters, transaction, cancellationToken: cancellationToken));
+
+    /// <summary>
+    /// Executes a parameterized command and returns the first column of the first row in the result set.
+    /// Additional columns or rows are ignored.
+    /// </summary>
+    public static Task<T> ExecuteScalarAsync<T>(
+        IDbConnection connection,
+        string sql,
+        object? parameters = null,
+        IDbTransaction? transaction = null,
+        CancellationToken cancellationToken = default) =>
+        connection.ExecuteScalarAsync<T>(
+            new CommandDefinition(sql, parameters, transaction, cancellationToken: cancellationToken));
 }

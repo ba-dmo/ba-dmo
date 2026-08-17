@@ -72,4 +72,6 @@ public static class CapabilityPolicies
     public const string Prefix = "BaDmo.Capability.";
 
     public const string JobonView = Prefix + CanonicalModuleCatalog.JobonViewCapabilityId;
+    public const string JobonEdit = Prefix + CanonicalModuleCatalog.JobonEditCapabilityId;
+    public const string JobonConfigure = Prefix + CanonicalModuleCatalog.JobonConfigureCapabilityId;
 }

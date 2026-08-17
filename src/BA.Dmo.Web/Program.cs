@@ -145,6 +145,7 @@ builder.Services.AddSingleton<IAdminProvisioningAdapter>(_ =>
         SupabaseSettings.ResolveServiceRoleKey(Environment.GetEnvironmentVariable)));
 builder.Services.AddSingleton<IAdminRepository, DapperAdminRepository>();
 builder.Services.AddSingleton<IModuleCatalogMirrorRepository, DapperModuleCatalogMirrorRepository>();
+builder.Services.AddScoped<IJobOnRepository, DapperJobOnRepository>();
 builder.Services.AddSingleton(CanonicalModuleCatalog.Instance);
 builder.Services.AddScoped<AdminAuthorizationGate>();
 builder.Services.AddScoped<AdminUserService>();
