@@ -1,4 +1,5 @@
 using BA.Dmo.Domain.Shared.Kernel;
+using BA.Dmo.Infrastructure.Persistence;
 using BA.Dmo.Infrastructure.Persistence.Migrations;
 
 namespace BA.Dmo.Web.Cli;
@@ -22,8 +23,12 @@ namespace BA.Dmo.Web.Cli;
 /// </summary>
 public static class MigrateCommand
 {
-    public const string ConnectionStringVariable = "BA_DMO_DB_CONNECTION_STRING";
-    public const string FallbackConnectionStringVariable = "DATABASE_URL";
+    // Connection contract shared with the persistence foundation (U-03):
+    // DatabaseConnectionSettings is the single source of the env-variable names.
+    public const string ConnectionStringVariable =
+        DatabaseConnectionSettings.ConnectionStringVariable;
+    public const string FallbackConnectionStringVariable =
+        DatabaseConnectionSettings.FallbackConnectionStringVariable;
     public const string MigrationsDirectoryVariable = "BA_DMO_MIGRATIONS_DIR";
 
     public const int SuccessExitCode = 0;
@@ -38,9 +43,7 @@ public static class MigrateCommand
         TextWriter stdout,
         TextWriter stderr)
     {
-        var connectionString = environment(ConnectionStringVariable);
-        if (string.IsNullOrWhiteSpace(connectionString))
-            connectionString = environment(FallbackConnectionStringVariable);
+        var connectionString = DatabaseConnectionSettings.ResolveConnectionString(environment);
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             stderr.WriteLine(

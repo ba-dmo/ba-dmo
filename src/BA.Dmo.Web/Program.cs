@@ -1,3 +1,4 @@
+using BA.Dmo.Infrastructure.Persistence;
 using BA.Dmo.Web.Cli;
 
 // BA DMO — single composition root (Plan-V3 GLM-ARCH-07).
@@ -19,6 +20,10 @@ switch (mode)
 }
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Persistence foundation (U-03): snake_case ↔ PascalCase mapping conventions
+// for Dapper. CLI verbs exit above and never reach this point.
+PersistenceMappings.Configure();
 
 builder.Services.AddRazorPages();
 
