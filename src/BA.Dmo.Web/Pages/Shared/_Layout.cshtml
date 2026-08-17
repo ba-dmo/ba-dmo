@@ -37,8 +37,11 @@
         }
         @RenderBody()
     </main>
-    @* Canonical interaction contract (U-08): click selects / double click
-       opens; calendar day selection; password reveal. No domain logic. *@
+    @* Canonical interaction contract: click selects / double click opens;
+       list events; password reveal (dmo-interactions.js) + the single
+       canonical calendar behavior (dmo-calendar.js, U-09). No domain
+       logic lives in these scripts. *@
     <script src="~/scripts/dmo-interactions.js" defer></script>
+    <script src="~/scripts/dmo-calendar.js" defer></script>
 </body>
 </html>

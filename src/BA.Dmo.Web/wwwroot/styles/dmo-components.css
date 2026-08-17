@@ -450,6 +450,14 @@
   background: var(--dmo-text-on-color);
 }
 
+/* Today indicator required by Plan-V3 GLM-DSN-05 ("hoje com indicador
+   próprio"); the Design-Reference CSS is silent on today, so this is the
+   smallest neutral marker compatible with the reference day styling:
+   the strong brand border + aria-current="date" (never color alone). */
+.dmo-calendar__day.is-today:not(.selected) {
+  border: var(--dmo-border-width-strong) solid var(--dmo-brand-600);
+}
+
 .dmo-calendar__day:disabled {
   visibility: hidden;
 }

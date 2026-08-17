@@ -185,24 +185,31 @@
 
 <div class="dmo-card">
     <div class="dmo-modal-body">
-        <h3>Calendar único (CSS da referência; comportamento em U-09)</h3>
-        <div data-dmo-calendar>
-            <div class="dmo-calendar__head">
-                <button type="button" class="dmo-button dmo-icon-button" aria-label="Mês anterior">←</button>
-                <strong>agosto 2026</strong>
-                <button type="button" class="dmo-button dmo-icon-button" aria-label="Mês seguinte">→</button>
+        <h3>Calendar único canónico (U-09 — comportamento real)</h3>
+        <p class="dmo-u-muted">
+            Semana começa à segunda-feira; mudar de mês nunca auto-seleciona;
+            um clique seleciona/filtra; setas do teclado percorrem os dias.
+        </p>
+        <div class="dmo-work-split">
+            <section class="dmo-card" data-dmo-calendar data-month="2026-08"
+                     data-record-dates="2026-08-04,2026-08-05,2026-08-18,2026-08-21">
+                <div class="dmo-calendar__head">
+                    <button type="button" class="dmo-button dmo-icon-button" data-calendar-prev aria-label="Mês anterior">‹</button>
+                    <strong data-calendar-label></strong>
+                    <button type="button" class="dmo-button dmo-icon-button" data-calendar-next aria-label="Mês seguinte">›</button>
+                </div>
+                <div class="dmo-calendar__week">
+                    <span>SEG</span><span>TER</span><span>QUA</span><span>QUI</span><span>SEX</span><span>SÁB</span><span>DOM</span>
+                </div>
+                <div class="dmo-calendar__grid" data-calendar-grid></div>
+                <button type="button" class="dmo-button" data-calendar-clear>Mostrar todas as datas</button>
+            </section>
+            <div class="dmo-card">
+                <div class="dmo-modal-body">
+                    <h3>Dia selecionado</h3>
+                    <p class="dmo-u-muted" id="lab-calendar-date">todas as datas</p>
+                </div>
             </div>
-            <div class="dmo-calendar__week">
-                <span>seg</span><span>ter</span><span>qua</span><span>qui</span><span>sex</span><span>sáb</span><span>dom</span>
-            </div>
-            <div class="dmo-calendar__grid">
-                <button type="button" class="dmo-calendar__day" data-date="2026-08-03" aria-pressed="false">3</button>
-                <button type="button" class="dmo-calendar__day has-record" data-date="2026-08-04" aria-pressed="false">4</button>
-                <button type="button" class="dmo-calendar__day selected has-record" data-date="2026-08-05" aria-pressed="true">5</button>
-                <button type="button" class="dmo-calendar__day" data-date="2026-08-17" aria-pressed="false">17</button>
-                <button type="button" class="dmo-calendar__day" data-date="2026-08-25" aria-pressed="false" disabled>25</button>
-            </div>
-            <button type="button" class="dmo-button">Mostrar todas as datas</button>
         </div>
     </div>
 </div>
@@ -241,9 +248,17 @@
         <h3>Sidebar contextual + Toast</h3>
         <div class="dmo-work-split">
             <aside class="dmo-sidebar" aria-label="Contexto operacional">
+                <div class="dmo-sidebar__head">
+                    <h2>LINHAS DE PRODUÇÃO</h2>
+                    <p>Estado atual em máquina</p>
+                </div>
                 <div class="dmo-sidebar__card">
-                    <strong>Linha B1</strong>
+                    <strong>B1</strong>
                     <p>Estado operacional atual — sem analytics.</p>
+                </div>
+                <div class="dmo-sidebar__card">
+                    <strong>C3</strong>
+                    <p>Conflito apresentado no próprio cartão.</p>
                 </div>
             </aside>
             <div>
@@ -252,3 +267,23 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Laboratory consumption of the canonical calendar event (reference
+    // pattern: the page listens to dmo:date-select; the component owns the
+    // interaction). Also proves the clear button resets the readout.
+    document.addEventListener("DOMContentLoaded", function () {
+        var readout = document.getElementById("lab-calendar-date");
+        var calendar = document.querySelector("[data-dmo-calendar]");
+        if (!readout || !calendar) { return; }
+        document.addEventListener("dmo:date-select", function (event) {
+            readout.textContent = event.detail.date.split("-").reverse().join("/");
+        });
+        var clear = calendar.querySelector("[data-calendar-clear]");
+        if (clear) {
+            clear.addEventListener("click", function () {
+                readout.textContent = "todas as datas";
+            });
+        }
+    });
+</script>

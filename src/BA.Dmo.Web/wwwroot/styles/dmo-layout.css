@@ -45,7 +45,7 @@
 .app-nav ul {
   display: flex;
   align-items: stretch;
-  gap: var(--dmo-space-1);
+  gap: 25px; /* reference admin-nav/tab gap exact */
   list-style: none;
   margin: 0;
   padding: 0;
@@ -59,7 +59,6 @@
 .nav-area {
   display: flex;
   align-items: center;
-  gap: var(--dmo-space-1);
 }
 
 .nav-tab > a,
@@ -67,7 +66,7 @@
   display: inline-flex;
   align-items: center;
   height: 100%;
-  padding: 0 var(--dmo-space-3);
+  padding: 0 2px; /* reference tab button padding exact */
   border: 0;
   border-bottom: 3px solid transparent; /* reference admin-nav active rule */
   background: none;
@@ -91,7 +90,7 @@
 }
 
 .nav-area ul {
-  gap: 0;
+  gap: var(--dmo-space-2); /* area children cluster tighter than top tabs */
 }
 
 .nav-area ul .nav-tab > a {
@@ -367,7 +366,7 @@
   margin-top: var(--dmo-space-1);
 }
 
-/* ---------- Contextual sidebar (DMO §20; drawer below 980) ---------- */
+/* ---------- Contextual sidebar (reference sidebar + DMO §20) ---------- */
 
 .dmo-work-split {
   display: grid;
@@ -377,17 +376,46 @@
 }
 
 .dmo-sidebar {
-  padding: var(--dmo-space-4);
-  background: var(--dmo-brand-900);
+  padding: var(--dmo-space-5) var(--dmo-space-4);
+  background: var(--dmo-sidebar-gradient);
   color: var(--dmo-text-on-color);
   border-radius: var(--dmo-r-card);
 }
 
+.dmo-sidebar__head {
+  padding: 0 4px var(--dmo-space-4);
+}
+
+.dmo-sidebar__head h2 {
+  margin: 0;
+  font-size: var(--dmo-font-size-xs);
+  letter-spacing: .08em; /* reference side-head exact */
+  color: var(--dmo-text-on-color);
+}
+
+.dmo-sidebar__head p {
+  margin: 3px 0 0;
+  color: var(--dmo-sidebar-muted);
+  font-size: var(--dmo-font-size-xs);
+}
+
 .dmo-sidebar__card {
-  padding: var(--dmo-space-3);
-  border-radius: var(--dmo-r-control);
-  background: var(--dmo-brand-800);
-  margin-bottom: var(--dmo-space-3);
+  position: relative;
+  padding: 13px; /* reference machine card exact */
+  border-radius: var(--dmo-r-card);
+  background: var(--dmo-sidebar-card-bg);
+  border: var(--dmo-border-width) solid var(--dmo-sidebar-card-border);
+  margin-bottom: 10px;
+}
+
+.dmo-sidebar__card strong {
+  font-weight: var(--dmo-font-weight-extrabold);
+}
+
+.dmo-sidebar__card p {
+  margin: 3px 0 0;
+  color: var(--dmo-sidebar-muted);
+  font-size: var(--dmo-font-size-xs);
 }
 
 /* ---------- Responsive (DMO §22 + reference media rules) ---------- */
@@ -420,8 +448,9 @@
     padding-right: var(--dmo-page-gutter-tablet);
   }
 
+  /* Reference behavior: sidebar narrows, then stacks (block/drawer). */
   .dmo-work-split {
-    grid-template-columns: 1fr; /* sidebar becomes stacked block */
+    grid-template-columns: var(--dmo-sidebar-width-compact) 1fr;
   }
 }
 
@@ -444,6 +473,10 @@
 
   .audit-detail-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dmo-work-split {
+    grid-template-columns: 1fr; /* sidebar becomes stacked block */
   }
 }
 

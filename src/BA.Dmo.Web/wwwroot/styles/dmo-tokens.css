@@ -89,6 +89,7 @@
   --dmo-header-height: 76px;
   --dmo-tabs-height: 52px;
   --dmo-sidebar-width: 276px;
+  --dmo-sidebar-width-compact: 235px; /* reference sidebar at ≤980px */
   --dmo-logo-size: 44px;
   --dmo-logo-size-mobile: 38px;       /* reference header @600px */
   --dmo-calendar-day-min: 38px;       /* reference calendar day */
@@ -140,6 +141,13 @@
   --dmo-overlay-veil: rgba(15, 29, 42, .68);
   /* Reference login identity gradient end color (exact): */
   --dmo-login-gradient-end: #c7d9eb;
+
+  /* ---------- Contextual sidebar (reference boquilhas sidebar +
+     DMO §20; one-off reference values transcribed as tokens) ---------- */
+  --dmo-sidebar-gradient: linear-gradient(180deg, var(--dmo-brand-900), var(--dmo-brand-950));
+  --dmo-sidebar-card-bg: rgba(255, 255, 255, .05);   /* reference #ffffff0c */
+  --dmo-sidebar-card-border: rgba(255, 255, 255, .08); /* reference #ffffff13 */
+  --dmo-sidebar-muted: #a6c3df;                        /* reference side-head p */
 
   /* ---------- Typography (GLM-DSN-01 P0-1 exact scale; reference body
      font shorthand 14px/1.45 Inter…) ---------- */

@@ -235,7 +235,7 @@ public class DesignSystemGuardTests : IClassFixture<DesignSystemGuardTests.Desig
             "dmo-button", "dmo-field", "dmo-card", "dmo-pill", "dmo-table",
             "dmo-pagination", "dmo-menu", "dmo-alert", "dmo-toast",
             "dmo-skeleton", "dmo-empty-state", "dmo-error-state", "dmo-modal",
-            "dmo-tooltip", "dmo-calendar__day", "dmo-sidebar",
+            "dmo-tooltip", "dmo-calendar__week", "dmo-sidebar",
             "dmo-history-entry__compare", "dmo-path-readonly", "dmo-segmented",
             "data-dmo-list", "data-dmo-row"
         })
