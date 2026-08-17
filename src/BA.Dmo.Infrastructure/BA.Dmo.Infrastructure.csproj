@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- BA DMO infrastructure layer: Dapper/Npgsql persistence, Supabase auth adapter, audit, storage. -->
+  <ItemGroup>
+    <ProjectReference Include="..\BA.Dmo.Application\BA.Dmo.Application.csproj" />
+    <ProjectReference Include="..\BA.Dmo.Domain\BA.Dmo.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

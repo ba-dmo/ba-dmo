@@ -1,0 +1,19 @@
+# Build output
+bin/
+obj/
+*.user
+
+# Local .NET SDK installed for the fresh build workstation (not part of the application)
+.dotnet-sdk/
+dotnet-install.ps1
+
+# IDE
+.vs/
+.idea/
+*.suo
+
+# Test results
+TestResults/
+
+# Qoder IDE workspace metadata
+.qoder/
