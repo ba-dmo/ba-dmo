@@ -1,3 +1,4 @@
+using BA.Dmo.Application.Shared.Access;
 using BA.Dmo.Infrastructure.Persistence;
 using BA.Dmo.Web.Cli;
 
@@ -24,6 +25,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Persistence foundation (U-03): snake_case ↔ PascalCase mapping conventions
 // for Dapper. CLI verbs exit above and never reach this point.
 PersistenceMappings.Configure();
+
+// Canonical catalog validation (U-04, GLM-ACC-03): an invalid canonical
+// configuration fails explicitly at startup — it is never silently repaired.
+CatalogValidator.Validate(
+    CanonicalModuleCatalog.Instance,
+    CanonicalPageCatalog.Instance,
+    CanonicalModuleCatalog.AreaChildren);
 
 builder.Services.AddRazorPages();
 
