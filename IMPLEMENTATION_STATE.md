@@ -13,145 +13,187 @@ Current branch:
 main
 
 Current HEAD:
-9bb5219874e1a77de2e35b234bd4e2ccea8bc025
+f2245950ecd9617c1cf8868435d411dffd12e3a3
 
 Current unit:
-U-01 — Solution skeleton + shared kernel
+U-02 — Schema fresh-build (migrations N01–N12, sem execução live)
 
 Status:
 COMPLETE
 
 Completed units:
-U-01
+U-01, U-02
 
 ## Last Unit Summary
 
-U-01 delivered the fresh-build modular monolith skeleton exactly per Plan-V3
-(03_TARGET_MODULAR_ARCHITECTURE.md, GLM-ARCH-12 build contract, roadmap U-01):
+U-02 delivered the fresh-build database schema contract and migration
+infrastructure exactly per Plan-V3 (06_DATA §2/§3/§6/§12–13, PV-04/PV-05,
+BT-08, GLM-DATA-12):
 
-- `BA-DMO.sln` (classic .sln format, created from scratch; .NET SDK 10.0.400 default `.slnx`
-  was replaced because Plan-V3 prescribes `BA-DMO.sln`).
-- Six projects, all `net10.0` (centralized via `Directory.Build.props`):
-  `src\BA.Dmo.Domain`, `src\BA.Dmo.Application`, `src\BA.Dmo.Infrastructure`, `src\BA.Dmo.Web`,
-  `tests\BA.Dmo.UnitTests`, `tests\BA.Dmo.IntegrationTests`.
-- Prescribed dependency graph: Application→Domain; Infrastructure→Application+Domain;
-  Web→Application+Infrastructure; UnitTests→Domain+Application; IntegrationTests→Web+Infrastructure.
-- Shared kernel (empty-functional, GLM-ARCH-03): `Result<TSuccess,TError>` + `DomainError` with the
-  8 uniform error categories; `IClock` + `SystemClock`; `ICurrentUserAccessor` + `CurrentUser`;
-  `ModuleCatalog` foundation (`Capability`, `ModuleKind`, `ModuleDefinition`) with valid empty catalog.
-  Canonical catalog entries of modules/00 belong to U-04.
-- Web: single composition root with CLI routing per GLM-ARCH-15 (`migrate` / `bootstrap-admin`
-  verbs vs normal web startup; no 7th CLI project). U-01 ships routing placeholders only;
-  the real migrate runner is U-02 and bootstrap-admin is U-05. Minimal Razor Pages skeleton page.
-- `database/migrations/` created empty (runner + scripts are U-02).
-- No functional module code, no persistence, no Supabase/auth/admin/shell/design-system work,
-  no debug auth bypass anywhere (guard test added).
+- Complete migration family `database/migrations/N01_identity.sql … N12_rls.sql`
+  (12 scripts, idempotent, forward-only, whole-script execution contract):
+  identity/roles/audit, catalog mirror, Boquilhas, Ferramentas (tool types
+  CM/MF/BQ/PU/CS per owner decision resolving GLM-FERR-13), Job On family,
+  Peso, Pegamentos, Repair, Armazém, Tampões, shared settings, RLS/least privilege.
+- `schema_migrations` tracking (version PK, filename, sha256, applied_at,
+  execution_time_ms — the extra field is explicitly allowed by 06_DATA §12).
+- Custom Npgsql full-script runner in `Infrastructure/Persistence/Migrations`:
+  deterministic discovery, SHA-256 over raw bytes, skip on same checksum,
+  explicit failure on checksum mismatch, record-only-after-success, no later
+  migration after failure, NO statement splitting/parsing, no EF Core, no DbUp.
+- CLI `migrate` implemented (replaces the U-01 placeholder), CLI only, never
+  starts the web server, exit 0 on success / non-zero on failure; explicit
+  failure when connection configuration is missing (env vars
+  `BA_DMO_DB_CONNECTION_STRING` or `DATABASE_URL`; optional
+  `BA_DMO_MIGRATIONS_DIR`). bootstrap-admin remains a placeholder until U-05.
+- Migrations ship with the Web build output (`database/migrations` copied via
+  csproj Content) for the Render pre-deploy command.
+- NO live SQL executed anywhere (no Supabase, no local DB).
+
+Owner clarifications incorporated during U-02:
+1. Ferramentas tool types = CM, MF, BQ, PU, CS (resolves GLM-FERR-13
+   UNRESOLVED item); the Boquilhas operational module (bq_*, N03) stays
+   separate from the BQ tool type — no cross-identity FKs, separate ownership.
+2. Peso/Pegamentos historical attribution to the Ferramenta: guaranteed via
+   the immutable `job_on_revision_id` (mandatory FK in peso_controlos and
+   pegamento_controlos) whose job_on_component rows identify the tools
+   (source_tool_id/source_lot_id). Bidirectional navigation verified
+   (revision → tools → records, and record → revision → tools); navigation
+   indexes added on job_on_revision_id in both tables. No redundant direct
+   tool FKs added (owner instruction).
 
 ## Files Created/Changed
 
-Solution/build:
-- BA-DMO.sln (created)
-- Directory.Build.props (created)
-- .gitignore (created)
-- database/migrations/.gitkeep (created)
+Migrations (created):
+- database/migrations/N01_identity.sql (roles, append-only guard function,
+  access_templates, internal_users, audit_events)
+- database/migrations/N02_catalog.sql (module_catalog_mirror)
+- database/migrations/N03_bq.sql (bq_lotes/traces/movements/discrepancies/
+  lifecycle_history/utilisation_readings)
+- database/migrations/N04_ferramentas.sql (tool_references [CM/MF/BQ/PU/CS],
+  tool_lotes, physical_pieces, tool_check_rules, tool_check_occurrences)
+- database/migrations/N05_jobon.sql (job_on, job_on_revision, job_on_component,
+  job_on_component_field, job_on_component_row, job_on_verification_occurrence,
+  job_on_audit_event, job_on_field_option)
+- database/migrations/N06_peso.sql (peso_references/lotes/controlos/leituras/
+  comparacao_anterior/day_approvals/settings)
+- database/migrations/N07_pegamentos.sql (pegamento_controlos/medicoes)
+- database/migrations/N08_reparacoes.sql (repairers, line_repairer_defaults,
+  repair_exits, repair_exit_items, repair_events, internal_repair_records)
+- database/migrations/N09_armazem.sql (warehouse_locations/stock/movements)
+- database/migrations/N10_tampoes.sql (tampao_field_defs/field_values/
+  configurations/saldos/movements/planos)
+- database/migrations/N11_partilhado.sql (app_settings)
+- database/migrations/N12_rls.sql (RLS on all tables, anon/authenticated
+  revoked, ba_dmo_app technical CRUD + single technical policy per table,
+  schema_migrations migrate-only)
+- database/migrations/.gitkeep removed (family now present)
 
-Projects:
-- src/BA.Dmo.Domain/BA.Dmo.Domain.csproj
-- src/BA.Dmo.Application/BA.Dmo.Application.csproj
-- src/BA.Dmo.Infrastructure/BA.Dmo.Infrastructure.csproj
-- src/BA.Dmo.Web/BA.Dmo.Web.csproj
-- tests/BA.Dmo.UnitTests/BA.Dmo.UnitTests.csproj
-- tests/BA.Dmo.IntegrationTests/BA.Dmo.IntegrationTests.csproj
+Infrastructure (created):
+- src/BA.Dmo.Infrastructure/Persistence/Migrations/MigrationFile.cs
+  (MigrationFile + AppliedMigration records)
+- src/BA.Dmo.Infrastructure/Persistence/Migrations/MigrationExceptions.cs
+- src/BA.Dmo.Infrastructure/Persistence/Migrations/MigrationChecksum.cs
+- src/BA.Dmo.Infrastructure/Persistence/Migrations/MigrationDiscovery.cs
+- src/BA.Dmo.Infrastructure/Persistence/Migrations/IMigrationScriptGateway.cs
+- src/BA.Dmo.Infrastructure/Persistence/Migrations/MigrationRunner.cs
+- src/BA.Dmo.Infrastructure/Persistence/Migrations/NpgsqlMigrationScriptGateway.cs
+- src/BA.Dmo.Infrastructure/BA.Dmo.Infrastructure.csproj (changed: Npgsql 10.0.3)
 
-Domain shared kernel:
-- src/BA.Dmo.Domain/Shared/Kernel/ErrorCategory.cs
-- src/BA.Dmo.Domain/Shared/Kernel/DomainError.cs
-- src/BA.Dmo.Domain/Shared/Kernel/Result.cs
-- src/BA.Dmo.Domain/Shared/Kernel/IClock.cs
-- src/BA.Dmo.Domain/Shared/Kernel/SystemClock.cs
-- src/BA.Dmo.Domain/Shared/Access/CurrentUser.cs
-- src/BA.Dmo.Domain/Shared/Access/ICurrentUserAccessor.cs
-- src/BA.Dmo.Domain/Shared/Access/Capability.cs
-- src/BA.Dmo.Domain/Shared/Access/ModuleKind.cs
-- src/BA.Dmo.Domain/Shared/Access/ModuleDefinition.cs
-- src/BA.Dmo.Domain/Shared/Access/ModuleCatalog.cs
+Web (changed/created):
+- src/BA.Dmo.Web/Cli/MigrateCommand.cs (replaced U-01 placeholder with real CLI)
+- src/BA.Dmo.Web/BA.Dmo.Web.csproj (changed: ships database/migrations to output)
 
-Web:
-- src/BA.Dmo.Web/Program.cs
-- src/BA.Dmo.Web/Cli/CliMode.cs
-- src/BA.Dmo.Web/Cli/CliModeResolver.cs
-- src/BA.Dmo.Web/Cli/MigrateCommand.cs
-- src/BA.Dmo.Web/Cli/BootstrapAdminCommand.cs
-- src/BA.Dmo.Web/Pages/_ViewImports.cshtml
-- src/BA.Dmo.Web/Pages/Index.cshtml
-- src/BA.Dmo.Web/Pages/Index.cshtml.cs
-- src/BA.Dmo.Web/appsettings.json (template)
-- src/BA.Dmo.Web/appsettings.Development.json (template)
-- src/BA.Dmo.Web/Properties/launchSettings.json (template; local dev ports only)
-
-Tests:
-- tests/BA.Dmo.UnitTests/Shared/Kernel/ResultTests.cs
-- tests/BA.Dmo.UnitTests/Shared/Kernel/DomainErrorTests.cs
-- tests/BA.Dmo.UnitTests/Shared/Kernel/ClockTests.cs
-- tests/BA.Dmo.UnitTests/Shared/Access/ModuleCatalogTests.cs
-- tests/BA.Dmo.UnitTests/Shared/Access/CapabilityAndModuleDefinitionTests.cs
-- tests/BA.Dmo.UnitTests/Shared/Access/CurrentUserTests.cs
-- tests/BA.Dmo.IntegrationTests/Cli/CliRoutingTests.cs
-- tests/BA.Dmo.IntegrationTests/Cli/CliCommandPlaceholderTests.cs
-- tests/BA.Dmo.IntegrationTests/Security/NoDebugBypassGuardTests.cs
-
-Environment (git-ignored, not application code):
-- .dotnet-sdk/ (local .NET SDK 10.0.400 installed via official dotnet-install script; no SDK existed on the workstation)
-- dotnet-install.ps1 (official installer script, git-ignored)
+Tests (created/changed):
+- tests/BA.Dmo.IntegrationTests/Migrations/FakeMigrationGateway.cs
+- tests/BA.Dmo.IntegrationTests/Migrations/MigrationDiscoveryTests.cs
+- tests/BA.Dmo.IntegrationTests/Migrations/MigrationChecksumTests.cs
+- tests/BA.Dmo.IntegrationTests/Migrations/MigrationRunnerTests.cs
+- tests/BA.Dmo.IntegrationTests/Migrations/MigrationArchitectureGuardTests.cs
+- tests/BA.Dmo.IntegrationTests/Cli/MigrateCliTests.cs
+- tests/BA.Dmo.IntegrationTests/Cli/CliCommandPlaceholderTests.cs (changed:
+  now CliCommandContractTests; bootstrap-admin placeholder retained)
 
 ## Build
 
 Commands:
 - `dotnet restore BA-DMO.sln` — PASS
-- `dotnet build BA-DMO.sln --no-restore` — PASS (0 warnings, 0 errors; all six outputs under `bin\Debug\net10.0`)
-
-Note: `dotnet`/`git` are not on PATH in this workstation shell. Used
-`C:\BA-DMO-FRESH-BUILD\.dotnet-sdk\dotnet.exe` (DOTNET_ROOT set) and
-`C:\Program Files\Git\cmd\git.exe`.
+- `dotnet build BA-DMO.sln` — PASS (0 warnings, 0 errors, net10.0 all projects)
 
 ## Tests Executed
 
 - `dotnet test BA-DMO.sln --no-build` (both test projects)
-- Manual CLI verification: `dotnet BA.Dmo.Web.dll migrate` → exit 1 (placeholder, U-02);
-  `dotnet BA.Dmo.Web.dll bootstrap-admin` → exit 1 (placeholder, U-05); no web startup in either.
-- Manual web verification: normal startup served `/` with HTTP 200 (skeleton page), then stopped.
+- Manual CLI verification: `dotnet BA.Dmo.Web.dll migrate` without connection
+  config → exit 2 with explicit diagnostic; `bootstrap-admin` → exit 1
+  (placeholder until U-05); web startup normal mode → HTTP 200 skeleton page.
+- Verified 12 migration scripts copied to `src/BA.Dmo.Web/bin/…/database/migrations`.
 
 ## Test Results
 
-- BA.Dmo.UnitTests: Total 55, Passed 55, Failed 0, Skipped 0, Duration 205 ms
-- BA.Dmo.IntegrationTests: Total 15, Passed 15, Failed 0, Skipped 0, Duration 224 ms
-- Combined: Total 70, Passed 70, Failed 0
+- BA.Dmo.UnitTests: Total 55, Passed 55, Failed 0, Skipped 0 (U-01 regression green)
+- BA.Dmo.IntegrationTests: Total 37, Passed 37, Failed 0, Skipped 0
+- Combined: Total 92, Passed 92, Failed 0, Duration ~125 ms per project
+
+U-02 required test coverage:
+1. deterministic discovery/order — MigrationDiscoveryTests ✓
+2. SHA-256 calculation — MigrationChecksumTests (FIPS vector) ✓
+3. unapplied migration execution — MigrationRunnerTests ✓
+4. successful migration recording — MigrationRunnerTests ✓
+5. same-checksum skip — MigrationRunnerTests ✓
+6. checksum mismatch failure — MigrationRunnerTests ✓
+7. failed SQL not recorded — MigrationRunnerTests ✓
+8. no later migrations after failure — MigrationRunnerTests ✓
+9. whole-script execution — MigrationRunnerTests (byte-for-byte identity) ✓
+10. no SQL splitting/parser — MigrationRunnerTests (semicolons in data intact)
+    + MigrationArchitectureGuardTests ✓
+11. CLI routing to migrate — CliRoutingTests (U-01, still green) ✓
+12. migrate CLI non-zero on configuration/migration failure — MigrateCliTests ✓
+13. web startup remains web startup — CliRoutingTests + manual HTTP 200 ✓
+14. bootstrap-admin separate/not implemented — CliCommandContractTests ✓
 
 ## Decisions Applied
 
-- HARNESS ↔ PLAN-V3 one-time compatibility check: PASS (process-level; harness defers to Plan-V3,
-  paths/authorities exist, current unit identifiable).
-- net10.0 single target centralized in Directory.Build.props (GLM-ARCH-12).
-- CLI verbs live in BA.Dmo.Web only; no separate CLI project (GLM-ARCH-15).
-- U-01 scope kept to the four named kernel deliverables + supporting types; Line/Quantity/Periodo/
-  RefCode VOs, IAuditWriter and IAuthorizationService ports (GLM-ARCH-03 foundation list) deferred
-  to the units that first need them (U-04/U-05+) to avoid speculative scope.
-- ModuleCatalog placed in Domain/Shared/Access per 03_ARCH §2; U-04 will add canonical entries +
-  Application/Shared/Access services + DB mirror.
+- Migration numbering follows the names fixed by 06_DATA §2 (N01_identity,
+  N02_catalog, N03_bq, … N12_rls); remaining slots ordered by FK dependency
+  (Ferramentas → Job On → Peso/Pegamentos → Repair → Armazém → Tampões →
+  shared).
+- schema_migrations is created by the runner itself (embedded DDL) — avoids
+  the bootstrap chicken-and-egg and is not itself a tracked migration.
+- RLS: RLS enabled on every table; anon/authenticated revoked (guarded for
+  plain PostgreSQL); ba_dmo_app gets technical CRUD + one technical policy
+  per table; NO per-user/per-module policies in V1 (GLM-DATA-06.3);
+  schema_migrations has RLS but no app policy (migrate-only).
+- Cross-module physical FKs only where Plan-V3 makes them mandatory
+  (peso/pegamento → job_on/job_on_revision); forward references resolved
+  within the same script via guarded ADD CONSTRAINT (job_on.current_revision_id,
+  repair_events.internal_repair_record_id). Logical links kept as plain uuid
+  where Plan-V3 keeps them denormalized (audit_events.job_on_id,
+  tool_check_occurrences job_on links, internal_repair_records.job_on_id,
+  job_on.article_reference_id).
+- Ferramentas tool types CM/MF/BQ/PU/CS (owner decision; GLM-FERR-13 was
+  UNRESOLVED in Plan-V3). Repair types stay BQ/CM/MF (06_DATA §3.7).
+- Historical Ferramenta attribution for Peso/Pegamentos = immutable
+  job_on_revision_id anchor (TD-18) + TD-26 Peso-lot identity; no redundant
+  direct tool FKs (owner confirmation).
 
 ## Safe Implementer Choices Made
 
-- Classic `.sln` generated with `dotnet new sln --format sln` (SDK 10 defaults to .slnx).
-- Kernel folder split: Result/DomainError/ErrorCategory/IClock/SystemClock in Shared/Kernel;
-  identity+catalog types in Shared/Access (03_ARCH §2 allows both placements).
-- CliModeResolver: unknown leading argument falls back to web startup so hosting parameters
-  (e.g. `--urls`) keep working; verbs matched case-insensitively.
-- migrate/bootstrap-admin placeholders return exit code 1 with explicit message (never fake success);
-  expected to be replaced by U-02/U-05 implementations.
-- Local dev ports from template launchSettings (5051/7148); never production ports (GLM-ARCH-13).
-- Local .NET SDK installed inside the workspace (.dotnet-sdk/, git-ignored) because no SDK existed;
-  no system-wide change.
-- Test framework/packages: xunit template defaults only (no extra external dependencies).
+- Connection env contract: BA_DMO_DB_CONNECTION_STRING primary, DATABASE_URL
+  fallback (Render convention); BA_DMO_MIGRATIONS_DIR override; missing
+  config → exit 2 explicit. No connection string in any repository file.
+- Exit codes: 0 success, 1 migration/connection failure, 2 configuration error.
+- Migration family filename pattern enforced (`N##_<name>.sql`); discovery
+  ordinal; duplicate versions rejected.
+- Checksum computed over raw file bytes; lowercase hex canonical form.
+- One transaction per migration (atomic success/failure).
+- execution_time_ms column added to schema_migrations (explicitly allowed by
+  06_DATA §12 "ex.: execution time").
+- Append-only fact tables protected by a shared trigger function
+  (ba_dmo_guard_append_only) created in N01.
+- warehouse_stock 1:1 occupation via partial unique index (released rows kept
+  as facts).
+- Internal CLI overload accepts env-reader/TextWriter for deterministic tests
+  without mutating real environment variables.
 
 ## Blockers
 
@@ -159,37 +201,42 @@ NONE.
 
 ## Known Risks
 
-- `Spec/07_C_SHARP_SOLUTION_ARCHITECTURE.md` (cited by U-01 as prior authority) is not present in
-  the archived reference repository; its architecture content is fully subsumed by
-  03_TARGET_MODULAR_ARCHITECTURE.md, which was used. Non-material discrepancy, reported.
-- CliCommandPlaceholderTests assert the U-01 placeholder semantics and must be replaced by real
-  command tests in U-02/U-05.
+- Migration scripts are validated by review per U-02 acceptance ("validados
+  por revisão"); application against a real database is only authorized in
+  U-20/live phases with owner approval (06_DATA §17 verification items).
+- CliCommandContractTests keeps the bootstrap-admin placeholder assertion;
+  U-05 replaces it.
 
 ## Manual Checks Pending
 
-NONE required for U-01. (Owner review of the working tree before commit is expected —
-commit/push not authorized for this execution.)
+NONE required for U-02. (Owner review of the working tree before commit is
+expected — commit/push not authorized for this execution.)
 
 ## Next Unit
 
-U-02 — Schema fresh-build (migrations N01–N12, sem execução live).
+U-03 — Persistence infrastructure (DbConnectionFactory, DapperUnitOfWork,
+mappings base, timestamp/authorship policy).
 
-Status: NOT STARTED (per instruction; U-02 not touched in any way).
+Status: NOT STARTED (per instruction; U-03 not touched in any way).
 
 ## Git Commit
 
-NO commit created (commit/push not authorized for this execution). All U-01 changes left
-untracked/modified in the working tree for owner review.
+NO commit created (commit/push not authorized for this execution). All U-02
+changes left in the working tree for owner review.
 
 Branch: main
-HEAD: 9bb5219874e1a77de2e35b234bd4e2ccea8bc025 (unchanged)
+HEAD: f2245950ecd9617c1cf8868435d411dffd12e3a3 (unchanged)
 
 ## Notes for Next Agent Session
 
-- Environment: use `C:\BA-DMO-FRESH-BUILD\.dotnet-sdk\dotnet.exe` (set DOTNET_ROOT) and
-  `C:\Program Files\Git\cmd\git.exe`; neither is on PATH.
-- U-02 scope: `database/migrations/N01…N12`, Npgsql full-script runner in
-  Infrastructure/Persistence, `schema_migrations`, CLI `migrate` real implementation
-  (replace MigrateCommand placeholder + its placeholder tests). Authority: 06_DATA; BT-08;
-  GLM-ARCH-12/15. No live SQL without explicit owner authorization.
-- Canonical commands: `dotnet restore`, `dotnet build`, `dotnet test` on `BA-DMO.sln`.
+- Environment: use `C:\BA-DMO-FRESH-BUILD\.dotnet-sdk\dotnet.exe` (set
+  DOTNET_ROOT) and `C:\Program Files\Git\cmd\git.exe`; neither is on PATH.
+- U-03 scope: Infrastructure/Persistence — DbConnectionFactory, DapperUnitOfWork,
+  base mappings, timestamp/authorship policy; ports generic repositories;
+  authority 06_DATA §1–2/§5/§8. No Supabase RPC. Dapper package will be
+  needed (approved mechanism per GLM-DATA-01).
+- Migration CLI is ready: `dotnet BA.Dmo.Web.dll migrate` (needs
+  BA_DMO_DB_CONNECTION_STRING / DATABASE_URL). Live SQL only with explicit
+  owner authorization.
+- Canonical commands: `dotnet restore`, `dotnet build`, `dotnet test` on
+  `BA-DMO.sln`.

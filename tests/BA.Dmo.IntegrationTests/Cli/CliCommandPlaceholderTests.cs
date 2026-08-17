@@ -3,24 +3,15 @@ using BA.Dmo.Web.Cli;
 namespace BA.Dmo.IntegrationTests.Cli;
 
 /// <summary>
-/// U-01 technical contract test: CLI-only placeholders must never pretend success.
-/// The real migrate runner arrives in U-02 and bootstrap-admin in U-05; until then the
-/// verbs must fail explicitly (non-zero exit) instead of silently doing nothing
-/// (GLM-ARCH-15; Render pre-deploy relies on exit codes — 06_DATA/U-22).
-/// These assertions are expected to be replaced by the real command tests in U-02/U-05.
+/// CLI contract tests across roadmap units (GLM-ARCH-15).
+/// U-02 replaced the migrate placeholder with the real runner; bootstrap-admin
+/// remains a placeholder until U-05 (PV-08). Placeholders must never pretend
+/// success: non-zero exit keeps Render pre-deploy semantics honest.
 /// </summary>
-public class CliCommandPlaceholderTests
+public class CliCommandContractTests
 {
     [Fact]
-    public void Migrate_Placeholder_FailsExplicitly()
-    {
-        var exitCode = MigrateCommand.Run();
-
-        Assert.NotEqual(0, exitCode);
-    }
-
-    [Fact]
-    public void BootstrapAdmin_Placeholder_FailsExplicitly()
+    public void BootstrapAdmin_Placeholder_FailsExplicitly_UntilU05()
     {
         var exitCode = BootstrapAdminCommand.Run();
 

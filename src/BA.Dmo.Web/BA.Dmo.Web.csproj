@@ -7,4 +7,12 @@
     <ProjectReference Include="..\BA.Dmo.Infrastructure\BA.Dmo.Infrastructure.csproj" />
   </ItemGroup>
 
+  <!-- Ship the fresh-build migration family with the deployed web output so the
+       CLI-only migrate command (Render pre-deploy, PV-05) finds the scripts. -->
+  <ItemGroup>
+    <Content Include="..\..\database\migrations\**\*.sql"
+             Link="database\migrations\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
