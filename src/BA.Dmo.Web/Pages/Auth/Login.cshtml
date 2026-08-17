@@ -1,0 +1,29 @@
+@page "/login"
+@model BA.Dmo.Web.Pages.Auth.LoginModel
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BA DMO — Entrar</title>
+</head>
+<body>
+    <main>
+        <h1>BA DMO</h1>
+        <h2>Entrar</h2>
+        @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+        {
+            <p role="alert">@Model.ErrorMessage</p>
+        }
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="username" required />
+            <label for="password">Palavra-passe</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required />
+            <button type="submit">Entrar</button>
+        </form>
+    </main>
+</body>
+</html>

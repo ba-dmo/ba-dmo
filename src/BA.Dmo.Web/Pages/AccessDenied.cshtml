@@ -1,0 +1,18 @@
+@page "/access-denied"
+@model BA.Dmo.Web.Pages.AccessDeniedModel
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BA DMO — Acesso negado</title>
+</head>
+<body>
+    <main>
+        <h1>Acesso negado</h1>
+        <p>Não tem autorização para aceder a esta área.</p>
+        <p><a href="/login">Voltar à entrada</a></p>
+    </main>
+</body>
+</html>

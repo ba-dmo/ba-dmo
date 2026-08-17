@@ -1,0 +1,18 @@
+@page "/no-access"
+@model BA.Dmo.Web.Pages.NoAccessModel
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BA DMO — Sem acesso</title>
+</head>
+<body>
+    <main>
+        <h1>Sem acesso</h1>
+        <p>A sua sessão está autenticada, mas não tem módulos atribuídos. Contacte a Administração.</p>
+        <p><a href="/logout">Terminar sessão</a></p>
+    </main>
+</body>
+</html>

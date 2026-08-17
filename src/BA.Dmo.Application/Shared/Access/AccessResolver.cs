@@ -67,6 +67,12 @@ public sealed class EffectiveAccess
     internal IReadOnlySet<string> Modules => _modules;
 
     internal IReadOnlySet<string> Capabilities => _capabilities;
+
+    /// <summary>Authorized module ids (consumed by identity/session wiring, U-05).</summary>
+    public IReadOnlyCollection<string> AuthorizedModuleIds => _modules;
+
+    /// <summary>Granted capability ids (consumed by identity/session wiring, U-05).</summary>
+    public IReadOnlyCollection<string> GrantedCapabilityIds => _capabilities;
 }
 
 /// <summary>

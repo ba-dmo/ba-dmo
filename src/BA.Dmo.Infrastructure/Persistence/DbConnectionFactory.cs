@@ -1,15 +1,49 @@
 using System.Data;
 using BA.Dmo.Application.Shared.Persistence;
-using Npgsql;
 
 namespace BA.Dmo.Infrastructure.Persistence;
 
 /// <summary>
-/// Npgsql connection factory of the persistence foundation (Plan-V3 U-03,
-/// GLM-DATA-01: Npgsql + Dapper against Supabase PostgreSQL, schema public).
-/// Every <see cref="OpenConnectionAsync"/> call creates and opens an
-/// independent connection; callers own its disposal (typically through
-/// DapperUnitOfWork). No global/static connection exists anywhere.
+/// Connection factory that resolves the real <see cref="DbConnectionFactory"/>
+/// lazily on first use. Web startup stays healthy when no database
+/// configuration exists; the first database access fails explicitly with the
+/// U-03 configuration error instead of crashing composition (fail closed at
+/// use, not at startup).
+/// </summary>
+public sealed class LazyDbConnectionFactory : IDbConnectionFactory
+{
+    private readonly Func<string, string?> _environment;
+    private readonly SemaphoreSlim _gate = new(1, 1);
+    private DbConnectionFactory? _inner;
+
+    public LazyDbConnectionFactory(Func<string, string?> environment)
+    {
+        _environment = environment ?? throw new ArgumentNullException(nameof(environment));
+    }
+
+    public async Task<IDbConnection> OpenConnectionAsync(
+        CancellationToken cancellationToken = default)
+    {
+        if (_inner is null)
+        {
+            await _gate.WaitAsync(cancellationToken);
+            try
+            {
+                _inner ??= DbConnectionFactory.FromEnvironment(_environment);
+            }
+            finally
+            {
+                _gate.Release();
+            }
+        }
+
+        return await _inner.OpenConnectionAsync(cancellationToken);
+    }
+}
+
+/// <summary>
+/// Npgsql connection factory (Plan-V3 U-03, GLM-DATA-01). Built from the
+/// approved environment contract; fails explicitly when unconfigured.
 /// </summary>
 public sealed class DbConnectionFactory : IDbConnectionFactory
 {
@@ -26,10 +60,6 @@ public sealed class DbConnectionFactory : IDbConnectionFactory
         _connectionString = connectionString;
     }
 
-    /// <summary>
-    /// Builds a factory from the approved environment contract. Fails clearly
-    /// when the configuration is absent.
-    /// </summary>
     public static DbConnectionFactory FromEnvironment(Func<string, string?> environment)
     {
         var connectionString = DatabaseConnectionSettings.ResolveConnectionString(environment);
@@ -42,12 +72,11 @@ public sealed class DbConnectionFactory : IDbConnectionFactory
             : new DbConnectionFactory(connectionString);
     }
 
-    /// <summary>Exposed for diagnostics/tests: never logged elsewhere.</summary>
     public string ConnectionString => _connectionString;
 
     public async Task<IDbConnection> OpenConnectionAsync(CancellationToken cancellationToken = default)
     {
-        var connection = new NpgsqlConnection(_connectionString);
+        var connection = new Npgsql.NpgsqlConnection(_connectionString);
         try
         {
             await connection.OpenAsync(cancellationToken);
@@ -56,7 +85,6 @@ public sealed class DbConnectionFactory : IDbConnectionFactory
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             await connection.DisposeAsync();
-            // Translated, diagnostic, and safe: no credentials in the message.
             throw new DatabaseConnectionException(
                 $"Unable to open the database connection ({ex.GetType().Name}: {ex.Message}).",
                 ex);

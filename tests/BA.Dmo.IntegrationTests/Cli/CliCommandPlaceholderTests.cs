@@ -4,17 +4,19 @@ namespace BA.Dmo.IntegrationTests.Cli;
 
 /// <summary>
 /// CLI contract tests across roadmap units (GLM-ARCH-15).
-/// U-02 replaced the migrate placeholder with the real runner; bootstrap-admin
-/// remains a placeholder until U-05 (PV-08). Placeholders must never pretend
-/// success: non-zero exit keeps Render pre-deploy semantics honest.
+/// U-02 implemented migrate; U-05 implemented bootstrap-admin. Both fail
+/// explicitly (non-zero) without configuration — they never fake success and
+/// never start the web server (Render pre-deploy semantics).
 /// </summary>
 public class CliCommandContractTests
 {
     [Fact]
-    public void BootstrapAdmin_Placeholder_FailsExplicitly_UntilU05()
+    public void BootstrapAdmin_MissingConfiguration_FailsExplicitly_UntilConfigured()
     {
-        var exitCode = BootstrapAdminCommand.Run();
+        var exitCode = BootstrapAdminCommand.Run(
+            _ => null, new StringWriter(), new StringWriter());
 
         Assert.NotEqual(0, exitCode);
+        Assert.Equal(BootstrapAdminCommand.ConfigurationErrorExitCode, exitCode);
     }
 }
