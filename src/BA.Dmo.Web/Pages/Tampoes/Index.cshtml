@@ -1,0 +1,10 @@
+@page "/tampoes"
+@model BA.Dmo.Web.Pages.Tampoes.IndexModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.ModulePolicies.Tampoes)]
+@{
+    ViewData["Title"] = "Tampões";
+}
+<main data-testid="page-tampoes">
+    <h1>Tampões</h1>
+    <p>O conteúdo do módulo Tampões é entregue pela sua unidade própria (U-17).</p>
+</main>

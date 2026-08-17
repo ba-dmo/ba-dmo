@@ -76,9 +76,11 @@ public class WebAuthSessionTests : IClassFixture<WebAuthSessionTests.AuthTestFix
         Assert.Equal("/jobon", login.Headers.Location!.ToString());
         Assert.True(login.Headers.Contains("Set-Cookie"));
 
-        // The session reaches the protected surface.
+        // The session reaches the protected surface: "/" resolves the fixed
+        // global landing (05_SHL section 5: "/" redirects to landing).
         var home = await client.GetAsync("/");
-        Assert.Equal(HttpStatusCode.OK, home.StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, home.StatusCode);
+        Assert.Equal("/jobon", home.Headers.Location!.ToString());
     }
 
     [Fact]
@@ -150,8 +152,6 @@ public class WebAuthSessionTests : IClassFixture<WebAuthSessionTests.AuthTestFix
             ["email"] = "user@ba-dmo.example",
             ["password"] = "correct"
         });
-        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/")).StatusCode);
-
         var logout = await PostFormAsync(client, "/logout", []);
         Assert.Equal(HttpStatusCode.Redirect, logout.StatusCode);
         Assert.Equal("/login", logout.Headers.Location!.ToString());

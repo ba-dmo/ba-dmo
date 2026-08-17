@@ -1,0 +1,10 @@
+@page "/pegamentos"
+@model BA.Dmo.Web.Pages.Pegamentos.IndexModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.ModulePolicies.Pegamentos)]
+@{
+    ViewData["Title"] = "Pegamentos";
+}
+<main data-testid="page-pegamentos">
+    <h1>Pegamentos</h1>
+    <p>O conteúdo do módulo Pegamentos é entregue pela sua unidade própria (U-11).</p>
+</main>

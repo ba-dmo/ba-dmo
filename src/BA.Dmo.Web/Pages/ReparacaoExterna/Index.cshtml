@@ -1,0 +1,10 @@
+@page "/reparacao-externa"
+@model BA.Dmo.Web.Pages.ReparacaoExterna.IndexModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.ModulePolicies.ReparacaoExterna)]
+@{
+    ViewData["Title"] = "Reparação Externa";
+}
+<main data-testid="page-reparacao-externa">
+    <h1>Reparação Externa</h1>
+    <p>O conteúdo do módulo Reparação Externa é entregue pela sua unidade própria (U-15).</p>
+</main>

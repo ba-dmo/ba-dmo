@@ -1,0 +1,10 @@
+@page "/armazem"
+@model BA.Dmo.Web.Pages.Armazem.IndexModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.ModulePolicies.Armazem)]
+@{
+    ViewData["Title"] = "Armazém";
+}
+<main data-testid="page-armazem">
+    <h1>Armazém</h1>
+    <p>O conteúdo do módulo Armazém é entregue pela sua unidade própria (U-14).</p>
+</main>

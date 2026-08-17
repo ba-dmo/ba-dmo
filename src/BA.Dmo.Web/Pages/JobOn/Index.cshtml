@@ -1,0 +1,10 @@
+@page "/jobon"
+@model BA.Dmo.Web.Pages.JobOn.IndexModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.CapabilityPolicies.JobonView)]
+@{
+    ViewData["Title"] = "Job On";
+}
+<main data-testid="page-jobon">
+    <h1>Job On</h1>
+    <p>Landing global em Modo consulta (UD-16). O conteúdo do módulo Job On é entregue pela sua unidade própria (U-13).</p>
+</main>

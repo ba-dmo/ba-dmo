@@ -1,0 +1,10 @@
+@page "/ferramentas"
+@model BA.Dmo.Web.Pages.Ferramentas.IndexModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.ModulePolicies.Ferramentas)]
+@{
+    ViewData["Title"] = "Ferramentas";
+}
+<main data-testid="page-ferramentas">
+    <h1>Ferramentas</h1>
+    <p>O conteúdo do módulo Ferramentas (CM/MF) é entregue pela sua unidade própria (U-12).</p>
+</main>

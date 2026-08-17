@@ -1,0 +1,35 @@
+@{
+    // Single application frame (Plan-V3 GLM-SHL-01/02). Identity and tabs are
+    // DERIVED server-side from the resolved grants (GLM-SHL-03) — nothing here
+    // trusts the client. Visual design tokens arrive with U-08/U-09; this shell
+    // is semantic markup only.
+    var title = ViewData["Title"] is string pageTitle && pageTitle.Length > 0
+        ? $"BA DMO — {pageTitle}"
+        : "BA DMO";
+
+    // Deep-link feedback (05_SHL §5): after a server-side denial the shell
+    // lands on an authorized area with a FIXED message; the query flag only
+    // selects the message — it grants nothing.
+    var accessDeniedFeedback = Context.Request.Query.ContainsKey("acesso-negado");
+}
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@title</title>
+</head>
+<body>
+    <partial name="_Header" />
+    <partial name="_Navigation" />
+    <main class="app-work-area">
+        @if (accessDeniedFeedback)
+        {
+            <p role="status" data-testid="shell-feedback">
+                Não tem acesso a esta área. Foi encaminhado para uma área autorizada.
+            </p>
+        }
+        @RenderBody()
+    </main>
+</body>
+</html>

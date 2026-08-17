@@ -25,11 +25,16 @@ public sealed record ResolvedIdentity(
 /// missing/inactive template → ACCESS_TEMPLATE_INACTIVE; both produce the
 /// safe "session without access" state — never an Admin fallback, never a
 /// silent grant (GLM-ARCH-18). No role-name branching anywhere.
+/// The service is request-scoped: results are memoized for the lifetime of
+/// ONE request only, so concurrent consumers of the same request (page
+/// guard, shell, authorship) resolve once; every subsequent request
+/// re-resolves against the repository (GLM-ACC-08 re-resolution).
 /// </summary>
 public sealed class IdentityResolutionService
 {
     private readonly IInternalUserRepository _repository;
     private readonly AccessResolver _accessResolver;
+    private readonly Dictionary<Guid, Result<ResolvedIdentity, DomainError>> _requestCache = new();
 
     public IdentityResolutionService(
         IInternalUserRepository repository,
@@ -49,6 +54,18 @@ public sealed class IdentityResolutionService
                     "INTERNAL_USER_INACTIVE",
                     "No authenticated internal user is resolved for this session."));
 
+        if (_requestCache.TryGetValue(authUserId, out var cached))
+            return cached;
+
+        var resolution = await ResolveUncachedAsync(authUserId, cancellationToken);
+        _requestCache[authUserId] = resolution;
+        return resolution;
+    }
+
+    private async Task<Result<ResolvedIdentity, DomainError>> ResolveUncachedAsync(
+        Guid authUserId,
+        CancellationToken cancellationToken)
+    {
         InternalUserRecord? record;
         try
         {

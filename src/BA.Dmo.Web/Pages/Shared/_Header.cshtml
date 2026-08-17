@@ -1,0 +1,24 @@
+@inject BA.Dmo.Application.Shared.Shell.IShellService Shell
+@{
+    // Global header (GLM-SHL-02): brand + user identity (display name and
+    // profile_title — presentation only, never a permission source, UD-02)
+    // + account trigger with logout (GLM-SHL-07). Without a resolved internal
+    // identity the frame stays minimal (fail-closed safe state).
+    var shell = Shell.Current;
+}
+<header class="app-header">
+    <span class="app-brand">BA DMO</span>
+    @if (shell is not null)
+    {
+        <span class="app-user" data-testid="shell-user">
+            @shell.DisplayName
+            @if (!string.IsNullOrWhiteSpace(shell.ProfileTitle))
+            {
+                <span class="app-user-profile" data-testid="shell-profile-title">(@shell.ProfileTitle)</span>
+            }
+        </span>
+        <nav class="app-account" aria-label="Conta">
+            <a href="/logout" data-testid="shell-logout">Terminar sessão</a>
+        </nav>
+    }
+</header>

@@ -1,0 +1,10 @@
+@page "/peso/responsavel"
+@model BA.Dmo.Web.Pages.Peso.ResponsavelModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.ModulePolicies.Peso)]
+@{
+    ViewData["Title"] = "Peso — Responsável";
+}
+<main data-testid="page-peso-responsavel">
+    <h1>Peso — Responsável</h1>
+    <p>Experiência Responsável (peso.aprovar — UD-06/UD-15). O conteúdo do módulo Peso é entregue pela sua unidade própria (U-10).</p>
+</main>

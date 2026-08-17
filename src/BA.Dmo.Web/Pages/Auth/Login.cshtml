@@ -1,6 +1,9 @@
 @page "/login"
 @model BA.Dmo.Web.Pages.Auth.LoginModel
 @attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+@{
+    Layout = null; // Auth surface is outside the application shell (05_SHL §5).
+}
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>

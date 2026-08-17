@@ -1,15 +1,10 @@
 @page "/admin/audit"
 @model BA.Dmo.Web.Pages.Admin.Audit.IndexModel
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.AdminPolicies.AuditView)]
-<!DOCTYPE html>
-<html lang="pt-PT">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>BA DMO — Auditoria</title>
-</head>
-<body>
-    <main>
+@{
+    ViewData["Title"] = "Auditoria";
+}
+<main>
         <h1>Auditoria</h1>
         <p><a href="/admin">Administração</a></p>
         <div asp-validation-summary="All"></div>
@@ -80,6 +75,4 @@
                 <a href="/admin/audit?year=@Model.Year&actor=@Model.Actor&module=@Model.Module&action=@Model.Action&result=@Model.Result&pageSize=@Model.PageSize&page=@(Model.Events.Page + 1)">Seguinte</a>
             }
         }
-    </main>
-</body>
-</html>
+</main>

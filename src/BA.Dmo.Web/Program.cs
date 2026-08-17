@@ -2,6 +2,7 @@ using BA.Dmo.Application.Modules.Admin;
 using BA.Dmo.Application.Shared.Access;
 using BA.Dmo.Application.Shared.Identity;
 using BA.Dmo.Application.Shared.Persistence;
+using BA.Dmo.Application.Shared.Shell;
 using BA.Dmo.Domain.Shared.Access;
 using BA.Dmo.Domain.Shared.Kernel;
 using BA.Dmo.Infrastructure.Access;
@@ -11,6 +12,7 @@ using BA.Dmo.Infrastructure.Persistence;
 using BA.Dmo.Web.Authorization;
 using BA.Dmo.Web.Cli;
 using BA.Dmo.Web.Identity;
+using BA.Dmo.Web.Shell;
 using Microsoft.AspNetCore.Authorization;
 
 // BA DMO — single composition root (Plan-V3 GLM-ARCH-07).
@@ -83,19 +85,46 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(AdminPolicies.AuditExport, policy => policy
         .AddAuthenticationSchemes(SessionClaims.AuthenticationScheme)
         .AddRequirements(new CapabilityRequirement(CanonicalCapabilities.AuditExport)));
+
+    // Module/capability route guards (U-07, 05_SHL §5): one policy per
+    // canonical catalog entry, built ONLY from the canonical catalog —
+    // never from role names, emails or template names (GLM-ACC-03/04).
+    foreach (var module in CanonicalModuleCatalog.Instance.Modules)
+    {
+        var moduleId = module.ModuleId;
+        options.AddPolicy(ModulePolicies.Prefix + moduleId, policy => policy
+            .AddAuthenticationSchemes(SessionClaims.AuthenticationScheme)
+            .AddRequirements(new ModuleRequirement(moduleId)));
+        foreach (var capability in module.Capabilities)
+        {
+            var capabilityId = capability.Id;
+            options.AddPolicy(CapabilityPolicies.Prefix + capabilityId, policy => policy
+                .AddAuthenticationSchemes(SessionClaims.AuthenticationScheme)
+                .AddRequirements(new CapabilityRequirement(capabilityId)));
+        }
+    }
 });
 builder.Services.AddSingleton<IAuthorizationHandler, AuthenticatedSessionHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, CapabilityAuthorizationHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, ModuleAuthorizationHandler>();
 
 builder.Services.AddSingleton<IClock>(SystemClock.Instance);
 builder.Services.AddSingleton<IDbConnectionFactory>(
     new LazyDbConnectionFactory(Environment.GetEnvironmentVariable));
 builder.Services.AddSingleton<IInternalUserRepository, DapperInternalUserRepository>();
-builder.Services.AddSingleton(
-    new AccessResolver(
-        CanonicalModuleCatalog.Instance,
-        CanonicalPageCatalog.Instance,
-        CanonicalModuleCatalog.AreaChildren));
+var accessResolver = new AccessResolver(
+    CanonicalModuleCatalog.Instance,
+    CanonicalPageCatalog.Instance,
+    CanonicalModuleCatalog.AreaChildren);
+builder.Services.AddSingleton(accessResolver);
+
+// Shell navigation (U-07, GLM-SHL-01/03): navigation is DERIVED from the
+// resolved grants — it never lives in markup. The per-request shell state
+// (identity presentation + tabs) is resolved server-side, fail-closed.
+builder.Services.AddSingleton<INavigationService>(new NavigationService(
+    CanonicalPageCatalog.Instance, accessResolver, CanonicalModuleCatalog.Instance));
+builder.Services.AddScoped<IShellService, RequestShellService>();
+
 builder.Services.AddScoped<IdentityResolutionService>();
 builder.Services.AddScoped<ICurrentUserAccessor, RequestCurrentUserAccessor>();
 builder.Services.AddScoped<IPersistenceAuthorshipAccessor, CurrentUserAuthorshipAccessor>();

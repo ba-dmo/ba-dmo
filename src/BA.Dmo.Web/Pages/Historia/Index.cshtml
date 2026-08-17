@@ -1,0 +1,10 @@
+@page "/historia"
+@model BA.Dmo.Web.Pages.Historia.IndexModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.ModulePolicies.Historia)]
+@{
+    ViewData["Title"] = "História";
+}
+<main data-testid="page-historia">
+    <h1>História</h1>
+    <p>O conteúdo do módulo História é entregue pela sua unidade própria (U-18).</p>
+</main>

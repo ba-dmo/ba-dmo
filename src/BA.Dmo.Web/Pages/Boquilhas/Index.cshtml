@@ -1,0 +1,10 @@
+@page "/boquilhas"
+@model BA.Dmo.Web.Pages.Boquilhas.IndexModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.ModulePolicies.Boquilhas)]
+@{
+    ViewData["Title"] = "Boquilhas";
+}
+<main data-testid="page-boquilhas">
+    <h1>Boquilhas</h1>
+    <p>O conteúdo do módulo Boquilhas é entregue pela sua unidade própria (U-19).</p>
+</main>

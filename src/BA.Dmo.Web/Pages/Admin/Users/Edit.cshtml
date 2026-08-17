@@ -1,15 +1,10 @@
 @page "/admin/users/edit"
 @model BA.Dmo.Web.Pages.Admin.Users.EditModel
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.AdminPolicies.AdminGerir)]
-<!DOCTYPE html>
-<html lang="pt-PT">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>BA DMO — Editar utilizador</title>
-</head>
-<body>
-    <main>
+@{
+    ViewData["Title"] = "Editar utilizador";
+}
+<main>
         <h1>Editar utilizador interno</h1>
         <p><a href="/admin/users">Voltar à lista</a></p>
         @if (Model.Entry is null)
@@ -54,6 +49,4 @@
                 </button>
             </form>
         }
-    </main>
-</body>
-</html>
+</main>

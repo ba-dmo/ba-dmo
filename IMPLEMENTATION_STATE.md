@@ -13,199 +13,193 @@ Current branch:
 main
 
 Current HEAD:
-f356f325c4da0de2015dc3e24f8afe2291c93078
+30fddbb573127cbc504989396650d98f735182d3
 
 Current unit:
-U-06 — Administração completa
+U-07 — Shell única + navegação derivada
 
 Status:
 COMPLETE
 
 Completed units:
-U-01, U-02, U-03, U-04, U-05, U-06
+U-01, U-02, U-03, U-04, U-05, U-06, U-07
 
 ## Last Unit Summary
 
-U-06 delivered the Administration module exactly per Plan-V3 (04_ACC §9–12,
-GLM-ACC-06/09/10/11/12, UD-10/UD-17, TD-16/TD-19, modules/00 capabilities):
+U-07 delivered the single application shell and grant-derived navigation
+exactly per Plan-V3 (05_SHL §1–9, 04_ACC §5–6, GLM-CTR-02, GLM-CAT-02,
+UD-03..UD-06/UD-14..UD-16; GLM-ACC-07 scenarios 1–12 at route level):
 
-- Application use cases (Modules/Admin): AdminUserService (list, create via
-  privileged provisioning, edit display/profile, template assignment,
-  activate/deactivate, explicit password-reset initiation, composite save),
-  AdminTemplateService (create/update with strict canonical-catalog
-  validation — unknown modules/capabilities/area grants reject the whole
-  write; templates deactivated, never deleted), AdminMirrorService (display
-  order/activation of canonical modules only; mirror never grants access),
-  AdminAuditService (audit.view query with canonical 20/40/60 pagination;
-  audit.export CSV of factual columns only), AdminAuthorizationGate
-  (server-side capability re-check on every operation; executor identity
-  resolved from the session, never from posted forms).
-- Authorization: CapabilityRequirement + CapabilityAuthorizationHandler;
-  policies BaDmo.Admin.Gerir / BaDmo.Audit.View / BaDmo.Audit.Export built
-  ONLY on canonical capabilities — no role names, emails or template names.
-- Infrastructure: DapperAdminRepository (parameterized SQL, enumerated
-  columns; optimistic concurrency via updated_at + ConcurrencyGuard
-  (GLM-ACC-12); self-lockout invariant validated in the SAME transaction as
-  the write (GLM-ACC-10); audit insert/query).
-- Privileged operations: IAdminProvisioningAdapter extended with
-  RequestPasswordResetAsync (admin lookup + recovery-link request); the
-  adapter stays fail-closed without service-role configuration and is only
-  reachable via admin.gerir-gated use cases or the bootstrap CLI; the
-  service-role value never reaches messages, claims, audit or browser.
-- Admin Razor Pages: /admin (dashboard, "Voltar ao Job On"), /admin/users
-  (list/search), /admin/users/create, /admin/users/edit (save + template +
-  activation + password reset), /admin/templates (list), /admin/templates/edit
-  (canonical grants editor), /admin/applications (mirror order/activation),
-  /admin/audit (filters, canonical pagination, CSV export). Page models call
-  Application services; no business logic or SQL in Razor.
-- Self-lockout (GLM-ACC-10): deactivation/template-change/template-update
-  that would leave zero active admins with an active admin.gerir template
-  are rolled back and rejected with ADMIN_SELF_LOCKOUT; self-exclusion
-  allowed when another functional admin remains.
-- Audit (GLM-ACC-11): actions create/update/activate/deactivate/
-  change_template (internal_user), create/update/update_modules/activate/
-  deactivate (access_template), password_reset_request, mirror_update —
-  factual, no secrets.
+- Navigation derivation (Application/Shared/Access/NavigationService):
+  INavigationService builds tabs from EffectiveAccess ∩ canonical catalog
+  in canonical order — never in markup (GLM-SHL-01.3). Controlo is a
+  functional area: visible only with authorized children, showing ONLY
+  authorized children, never empty (GLM-CTR-02). Peso renders ONE entry
+  whose route resolves the Operador/Responsável experience via peso.aprovar
+  (GLM-ACC-05 — no manual selector). Administração is a right-aligned entry
+  existing only when admin.gerir is held. Zero-grant active users keep Job On
+  (UD-16). No role-name branching anywhere.
+- Shell state port + web implementation: IShellService/ShellState
+  (Application/Shared/Shell) + RequestShellService (Web/Shell) — per-request
+  server-side resolution from the session's auth user id only; null =
+  fail-closed minimal frame (GLM-ARCH-18). IdentityResolutionService memoizes
+  per request (scoped) so guard/shell/authorship resolve once per request;
+  re-resolution across requests preserved (GLM-ACC-08).
+- Single shell frame: Pages/_ViewStart + Pages/Shared/_Layout/_Header/
+  _Navigation. Header shows display name + profile_title (presentation only,
+  UD-02) + logout (GLM-SHL-07). Semantic markup only — design tokens arrive
+  with U-08/U-09. Auth pages (login/logout) and safe states (no-access,
+  access-denied) render outside the module shell.
+- Route surface with server-side guards (05_SHL §5): /jobon (jobon.view —
+  global landing placeholder until U-13), /boquilhas, /peso, /peso/responsavel,
+  /pegamentos, /ferramentas, /armazem, /reparacao-interna, /reparacao-externa,
+  /tampoes, /historia — module-entry policies; /admin pages keep admin.gerir/
+  audit.view. ModulePolicies/CapabilityPolicies are built ONLY from canonical
+  ids and registered catalog-driven at the composition root (GLM-ACC-03/04).
+- Peso exclusivity guards (GLM-ACC-05.2): Operador hitting /peso/responsavel
+  is redirected to /peso; Responsável hitting /peso is redirected to
+  /peso/responsavel — server-side, capability-driven, both directions.
+- Landing and deep links: "/" redirects to the fixed global landing (Job On;
+  deterministic fallback / /no-access otherwise). Unauthorized deep links are
+  denied server-side (403) and /access-denied redirects safely to an area
+  still authorized with fixed adequate feedback (?acesso-negado=1 renders a
+  server-defined message — the flag grants nothing). No redirect loops.
+- Admin pages converted into the shell layout (Admin is a module of this
+  shell — GLM-SHL-01.2); "Voltar ao Job On" preserved.
 
 ## Plan-V3 Sources Used
 
-- 10_MASTER_IMPLEMENTATION_ROADMAP.md (U-06 only)
-- 04_IDENTITY_ACCESS_AND_ADMIN_SPEC.md (§6 matrix, §9 operations,
-  §10 self-lockout, §11 audit, §12 concurrency)
-- modules/00_MODULE_CATALOG.md (capabilities admin.gerir/audit.view/
-  audit.export; GLM-CAT-02 rule 3 mirror order)
-- 02_DECISIONS UD-02/UD-10/UD-17, TD-16, C16 (admin.consultar absent in V1)
-- 06_DATA_BACKEND_AND_SECURITY_SPEC.md §3.1 (identity tables), §6 (security)
-- 09_TEST_QUALITY_AND_ACCEPTANCE_SPEC.md §4 (scenarios 7/8/13/14/15/17)
-- Design-Reference: not needed for behavior (functional pages only)
+- 10_MASTER_IMPLEMENTATION_ROADMAP.md (U-07 only)
+- 05_SHELL_NAVIGATION_AND_ROUTING_SPEC.md (§1–9)
+- 04_IDENTITY_ACCESS_AND_ADMIN_SPEC.md (§5 Peso separation, §6 matrix,
+  §7 scenarios 1–12, §8 grant change during session)
+- modules/00_MODULE_CATALOG.md (GLM-CAT-02 rules 1–4)
+- modules/02_CONTROLO_SPEC.md (GLM-CTR-01..06)
+- 02_DECISIONS UD-03/UD-04/UD-05/UD-06/UD-14/UD-15/UD-16, DS-01
+- 09_TEST_QUALITY_AND_ACCEPTANCE_SPEC.md §4 (route-level matrix)
+- Design-Reference: not needed (functional shell; tokens belong to U-08/U-09)
 
 ## Files Created/Changed
 
 Application (created):
-- src/BA.Dmo.Application/Modules/Admin/AdminModels.cs
-- src/BA.Dmo.Application/Modules/Admin/IAdminRepository.cs
-- src/BA.Dmo.Application/Modules/Admin/AdminAuthorizationGate.cs
-- src/BA.Dmo.Application/Modules/Admin/AdminUserService.cs
-  (incl. CanonicalCapabilities constants)
-- src/BA.Dmo.Application/Modules/Admin/AdminTemplateService.cs
-- src/BA.Dmo.Application/Modules/Admin/AdminMirrorService.cs
-- src/BA.Dmo.Application/Modules/Admin/AdminAuditService.cs
+- src/BA.Dmo.Application/Shared/Access/NavigationService.cs
+  (NavigationItem/NavigationTab/NavigationArea/ShellNavigation,
+  INavigationService, NavigationService)
+- src/BA.Dmo.Application/Shared/Shell/IShellService.cs (ShellState + port)
 
 Application (changed):
-- src/BA.Dmo.Application/Shared/Identity/SupabaseAuthPorts.cs
-  (IAdminProvisioningAdapter + RequestPasswordResetAsync)
-
-Infrastructure (created/changed):
-- src/BA.Dmo.Infrastructure/Access/DapperAdminRepository.cs
-- src/BA.Dmo.Infrastructure/Auth/SupabaseAdminProvisioningAdapter.cs
-  (changed: password-reset operation)
+- src/BA.Dmo.Application/Shared/Identity/IdentityResolutionService.cs
+  (per-request memoization; behavior per request unchanged)
 
 Web (created):
-- src/BA.Dmo.Web/Authorization/CapabilityAuthorizationHandler.cs
-  (CapabilityRequirement + AdminPolicies)
-- src/BA.Dmo.Web/Pages/Admin/Index.cshtml(.cs)
-- src/BA.Dmo.Web/Pages/Admin/Users/Index.cshtml(.cs)
-- src/BA.Dmo.Web/Pages/Admin/Users/Create.cshtml(.cs)
-- src/BA.Dmo.Web/Pages/Admin/Users/Edit.cshtml(.cs)
-- src/BA.Dmo.Web/Pages/Admin/Templates/Index.cshtml(.cs)
-- src/BA.Dmo.Web/Pages/Admin/Templates/Edit.cshtml(.cs)
-- src/BA.Dmo.Web/Pages/Admin/Applications/Index.cshtml(.cs)
-- src/BA.Dmo.Web/Pages/Admin/Audit/Index.cshtml(.cs)
+- src/BA.Dmo.Web/Authorization/ModuleAuthorizationHandler.cs
+  (ModuleRequirement + handler, ModulePolicies, CapabilityPolicies)
+- src/BA.Dmo.Web/Shell/RequestShellService.cs
+- src/BA.Dmo.Web/Pages/_ViewStart.cshtml
+- src/BA.Dmo.Web/Pages/Shared/_Layout.cshtml, _Header.cshtml, _Navigation.cshtml
+- src/BA.Dmo.Web/Pages/JobOn/Index.cshtml(.cs)
+- src/BA.Dmo.Web/Pages/Boquilhas/Index.cshtml(.cs)
+- src/BA.Dmo.Web/Pages/Peso/Index.cshtml(.cs) and Responsavel.cshtml(.cs)
+  (exclusivity guards)
+- src/BA.Dmo.Web/Pages/Pegamentos/Index.cshtml(.cs)
+- src/BA.Dmo.Web/Pages/Ferramentas/Index.cshtml(.cs)
+- src/BA.Dmo.Web/Pages/Armazem/Index.cshtml(.cs)
+- src/BA.Dmo.Web/Pages/ReparacaoInterna/Index.cshtml(.cs)
+- src/BA.Dmo.Web/Pages/ReparacaoExterna/Index.cshtml(.cs)
+- src/BA.Dmo.Web/Pages/Tampoes/Index.cshtml(.cs)
+- src/BA.Dmo.Web/Pages/Historia/Index.cshtml(.cs)
 
 Web (changed):
-- src/BA.Dmo.Web/Program.cs (Admin policies, handler and DI registrations;
-  privileged adapter registered fail-closed; mirror repository registered)
+- src/BA.Dmo.Web/Program.cs (catalog-driven module/capability policies,
+  ModuleAuthorizationHandler, INavigationService/IShellService DI,
+  AccessResolver instance refactor)
+- src/BA.Dmo.Web/Pages/Index.cshtml(.cs) ("/" → landing redirect)
+- src/BA.Dmo.Web/Pages/AccessDenied.cshtml(.cs) (safe redirect + feedback)
+- src/BA.Dmo.Web/Pages/_ViewImports.cshtml (shell/navigation usings)
+- src/BA.Dmo.Web/Pages/Auth/Login.cshtml, Auth/Logout.cshtml, NoAccess.cshtml,
+  AccessDenied.cshtml (Layout = null opt-out)
+- src/BA.Dmo.Web/Pages/Admin/** (8 pages converted to the shell layout)
 
 Tests (created):
-- tests/BA.Dmo.UnitTests/Shared/Admin/FakeAdminRepository.cs
-- tests/BA.Dmo.UnitTests/Shared/Admin/AdminUserServiceTests.cs
-- tests/BA.Dmo.UnitTests/Shared/Admin/AdminTemplateServiceTests.cs
-- tests/BA.Dmo.UnitTests/Shared/Admin/AdminAuditAndMirrorTests.cs
-- tests/BA.Dmo.IntegrationTests/Access/AdminWebAuthorizationTests.cs
-- tests/BA.Dmo.IntegrationTests/Access/AdminSecurityGuardTests.cs
+- tests/BA.Dmo.UnitTests/Shared/Access/NavigationServiceTests.cs (10)
+- tests/BA.Dmo.IntegrationTests/Access/ShellRoutingTests.cs (13)
+
+Tests (changed):
+- tests/BA.Dmo.IntegrationTests/Identity/WebAuthSessionTests.cs
+  ("/" now redirects to the landing per 05_SHL §5)
 
 ## Build
 
 Commands:
-- `dotnet restore BA-DMO.sln` — PASS
-- `dotnet build BA-DMO.sln --no-restore` — PASS (0 warnings, 0 errors)
+- `dotnet restore BA-DMO.sln` — PASS (all projects up-to-date)
+- `dotnet build BA-DMO.sln` — PASS (0 warnings, 0 errors)
 
 ## Tests Executed
 
-- `dotnet test BA-DMO.sln --no-build` (both projects)
-- Targeted runs during development per owner guidance (unit and integration
-  subsets); full regression at the final gate.
-- Manual web smoke after composition changes: startup healthy without DB or
-  Supabase config; `/login` 200; `/admin` 302 → /login (unauthenticated);
-  `/no-access` 200.
+- Targeted during development: NavigationServiceTests (unit),
+  ShellRoutingTests + WebAuthSessionTests + AdminWebAuthorizationTests
+  (integration).
+- Final gate: `dotnet test BA-DMO.sln --no-build` (full regression).
 
 ## Test Results
 
-- BA.Dmo.UnitTests: Total 187, Passed 187, Failed 0, Skipped 0
-- BA.Dmo.IntegrationTests: Total 100, Passed 100, Failed 0, Skipped 0
-- Combined: Total 287, Passed 287, Failed 0
-  (254 prior U-01..U-05 tests + 33 new U-06 tests, all green)
+- BA.Dmo.UnitTests: Total 197, Passed 197, Failed 0, Skipped 0
+- BA.Dmo.IntegrationTests: Total 113, Passed 113, Failed 0, Skipped 0
+- Combined: Total 310, Passed 310, Failed 0
+  (287 prior U-01..U-06 tests + 23 new U-07 tests, all green)
 
-U-06 required coverage (high-value tests, multiple requirements each):
-1. admin capability required for page + mutations ✓ (unit gate tests + web
-   policy tests)
-2. mutations re-check capability server-side ✓ (gate on every service call)
-3. user list/query mapping ✓
-4. create-user happy path with fake provider ✓
-5. provider creation failure ✓ (nothing persisted)
-6. persistence failure/recovery semantics ✓ (duplicate registration
-   conflict; retry-safe creation flow)
-7. duplicate auth/email handling ✓
-8. activate/deactivate user ✓
-9. change user template ✓
-10. profile/header label update ✓ (display-only; not used for auth)
-11. template create/update ✓
-12. template validation against canonical catalog ✓
-13. unknown module/capability rejected ✓
-14. capability ownership enforced ✓
-15. inactive template behavior ✓ (validation rejects assignment)
-16. self-lockout prevented ✓ (users + templates paths)
-17. last-admin/administrative-path protection ✓
-18. password reset privileged adapter path ✓
-19. service_role never exposed ✓ (adapter message tests + guards)
-20. administrative action audit written ✓
-21. passwords/tokens never audited ✓ (asserted)
-22. catalog mirror constrained to canonical modules ✓
-23. Job On remains landing after admin login ✓ (web test)
-24. no role-name routing/authorization ✓ (guards + behavior tests)
-25. unauthorized forged POST denied ✓ (web test; no writes)
-26. concurrency conflict behavior ✓ (reload message, GLM-ACC-12)
-27. U-01–U-05 regression ✓ (254 tests green)
-28. no debug bypass ✓ (existing guards green)
+U-07 required coverage (scenarios 1–12 at route level + shell rules):
+1. Boquilhas-only user: landing Job On; own route OK; every other module
+   route denied; tabs = Job On + Boquilhas only ✓
+2. Peso Operador: /peso OK; /peso/responsavel redirects to /peso; single
+   Peso entry points at /peso ✓
+3. Peso Responsável: /peso redirects to /peso/responsavel; single entry
+   points at /peso/responsavel ✓
+4./5./6. Controlo shows only authorized children (Pegamentos only / Peso
+   only / both); never empty ✓ (unit + integration)
+7. Admin without operational modules: landing Job On; /admin reachable by
+   navigation ✓
+8. Admin with modules: both surfaces; admin grants no implicit functional
+   access ✓
+9. No internal identity: /no-access safe state, no loop, modules denied ✓
+10. Deep link denied → /access-denied → safe redirect to authorized area
+    with fixed feedback ✓
+11. Grants removed mid-session: per-request re-resolution denies the lost
+    area on the next request ✓
+12. Template deactivated: authenticated without access; safe state ✓
++ unauthenticated module routes → /login; zero-grant user keeps Job On
+  (unit); canonical tab order; inactive template → no navigation (unit).
 
 ## Decisions Applied
 
-- Authorization = canonical capabilities only (admin.gerir, audit.view,
-  audit.export); audit tab requires audit.view, export requires audit.export
-  (scenario 17).
-- Executor identity for audits comes from the server-side gate (session),
-  never from posted form fields (forged-mutation protection).
-- Self-lockout validated by applying the write and counting surviving admin
-  paths inside the same transaction; zero → rollback + ADMIN_SELF_LOCKOUT.
-- Template grants validated with the U-04 GrantNormalizer discard report —
-  any discard rejects the write (unknown/wrong-owner/area grants never
-  silently granted).
-- Audit page/export are factual listings only (no scores/rankings,
-  UD-17); CSV separator sanitized.
-- C16: admin.consultar does not exist in V1 — not implemented.
+- Tabs derived ONLY from EffectiveAccess ∩ canonical catalog; unauthorized
+  entries never exist in the model, so they can never render (GLM-SHL-03.6).
+- Route guards for module entry = module policies; /jobon entry guard =
+  jobon.view per the 05_SHL §5 route table.
+- Peso exclusivity implemented as server-side redirects on both routes
+  (GLM-ACC-05.2), after the module-entry guard.
+- Deep-link denial chain: policy 403 → /access-denied → redirect to first
+  accessible page with a FIXED server-defined feedback message triggered by
+  a flag (`acesso-negado`); the flag can trigger the message, never its
+  content, and grants nothing (05_SHL §5 rule 1).
+- "/" is a pure redirect endpoint to the U-04 first-page resolution
+  (landing Job On; canonical fallback; /no-access) — replaces the U-01
+  skeleton page.
 
 ## Safe Implementer Choices Made
 
-- Admin page markup is functional/semantic (design system tokens belong to
-  U-08/U-09); no inline business logic in Razor.
-- Composite user save applies guarded sub-operations sequentially with
-  version refresh between steps.
-- Audit CSV export limited to factual columns; before/after summaries
-  excluded from export.
-- Audit query filter values passed strictly as SQL parameters (dynamic SQL
-  contains parameter names only).
-- Privileged adapter registered fail-closed in web DI (rejects without
-  service-role env config; reachable only via admin.gerir-gated use cases).
+- Shell markup is semantic only (no CSS/design tokens — they belong to
+  U-08/U-09); header/nav/area use stable class + data-testid hooks.
+- Module route placeholders render only the module name and a pointer to the
+  module's own unit; they carry zero module logic and will be replaced by
+  U-10..U-19 content.
+- Auth pages and safe-state pages opt out of the shell frame (pre-shell /
+  no-identity states).
+- IdentityResolutionService request-scoped memoization added so multiple
+  per-request consumers resolve identity once; resolution still happens
+  every request (GLM-ACC-08).
+- Feedback carried via fixed message + query flag instead of TempData/
+  session infrastructure (stateless; no new session contract).
 
 ## Blockers
 
@@ -213,36 +207,43 @@ NONE.
 
 ## Known Risks
 
-- DB round-trips of DapperAdminRepository verified only when a test database
-  becomes available (integration smoke phase), consistent with U-03/U-04/U-05.
+- Module placeholder pages must be replaced by their module units (U-10..
+  U-19) without weakening the route guards installed here.
+- Shell visual responsiveness (GLM-SHL-08 breakpoints) is pending the design
+  foundation (U-08/U-09); markup hooks are in place.
 
 ## Manual Checks Pending
 
-NONE required for U-06. (Owner review of the working tree before commit is
+NONE required for U-07. (Owner review of the working tree before commit is
 expected — commit/push not authorized for this execution.)
 
 ## Next Unit
 
-U-07 — Shell única + navegação derivada (per the canonical roadmap:
-Layout/header/nav, tabs by grants, Controlo group, landing UD-04/UD-16,
-deep links, /peso vs /peso/responsavel exclusivity guards).
+U-08 — Design tokens + componentes universais (07_DESIGN §1–4: tokens,
+foundation/components CSS, P1 components, laboratório page).
 
-Status: NOT STARTED (per instruction; U-07 not touched in any way).
+Status: NOT STARTED (per instruction; U-08 not touched in any way).
 
 ## Git Commit
 
-NO commit created (commit/push not authorized for this execution). All U-06
+NO commit created (commit/push not authorized for this execution). All U-07
 changes left in the working tree for owner review.
 
 Branch: main
-HEAD: f356f325c4da0de2015dc3e24f8afe2291c93078 (unchanged)
+HEAD: 30fddbb573127cbc504989396650d98f735182d3 (unchanged)
 
 ## Notes for Next Agent Session
 
 - Environment: use `C:\BA-DMO-FRESH-BUILD\.dotnet-sdk\dotnet.exe` (set
   DOTNET_ROOT) and `C:\Program Files\Git\cmd\git.exe`; neither is on PATH.
-- U-07 consumes: session (U-05), AccessResolver/EffectiveAccess + area rules
-  (U-04), capability policies/handler (U-06), canonical catalog. Authority:
-  05_SHELL_NAVIGATION_AND_ROUTING_SPEC.md, 04_ACC §5–6, GLM-CTR-02.
+  PowerShell 5.1 misreads BOM-less UTF-8 scripts as ANSI — never generate
+  accented content through .ps1 scripts; write files through the editor.
+- U-08 consumes: the shell frame hooks in Pages/Shared (_Layout/_Header/
+  _Navigation classes app-*/nav-*) and wwwroot (not yet created). Authority:
+  07_DESIGN_SYSTEM_AND_COMPONENT_ARCHITECTURE.md §1–4 +
+  DESIGN_IMPLEMENTATION_CONTRACT; Design-Reference portal-dmo-design-final.
+- U-07 shell services for later units: INavigationService/IShellService
+  (Application ports), ModulePolicies/CapabilityPolicies (Web.Authorization),
+  RequestShellService (Web.Shell).
 - Canonical commands: `dotnet restore`, `dotnet build`, `dotnet test` on
   `BA-DMO.sln`.
