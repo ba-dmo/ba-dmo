@@ -1,0 +1,735 @@
+/* ============================================================
+   BA DMO — dmo-components.css (U-08)
+   Universal components, each implemented ONCE (contract §3.2).
+   Sections 1–12 are transcribed from the Design-Reference
+   (dmo-design-system.css + the repeated patterns of the HTML
+   pages). Sections 13+ cover components documented in
+   DMO_DESIGN_SYSTEM v2.7 but absent from the reference CSS —
+   built with the smallest neutral behavior compatible with the
+   reference (reported under DISCREPANCIES).
+   ============================================================ */
+
+/* ---------- 1. Button (reference .dmo-button exact) ----------
+   State machine: filled rest → white inverted hover/focus; the
+   variant color travels through --button-color. No brightness. */
+
+.dmo-button {
+  min-height: var(--dmo-button-height);
+  padding: 7px 12px;
+  border: var(--dmo-border-width) solid var(--button-color, var(--dmo-brand-600));
+  border-radius: var(--dmo-r-control);
+  background: var(--button-color, var(--dmo-brand-600));
+  color: var(--dmo-text-on-color);
+  font-weight: var(--dmo-font-weight-bold);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--dmo-transition-fast),
+              color var(--dmo-transition-fast),
+              border-color var(--dmo-transition-fast);
+}
+
+.dmo-button:hover,
+.dmo-button:focus-visible {
+  background: var(--dmo-card);
+  color: var(--button-color, var(--dmo-brand-600));
+  outline: none; /* inverted state IS the focus signal; global :focus-visible
+                    still draws the outline on keyboard focus */
+  text-decoration: none;
+}
+
+.dmo-button.danger { --button-color: var(--dmo-danger); }
+.dmo-button.success { --button-color: var(--dmo-success); }
+
+.dmo-button:disabled {
+  --button-color: var(--dmo-disabled);
+  cursor: not-allowed;
+}
+
+/* Loading keeps width: label hidden, spinner over the filled surface. */
+.dmo-button.is-loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.dmo-button.is-loading .dmo-button__label {
+  visibility: hidden;
+}
+
+.dmo-button.is-loading::after {
+  content: "";
+  position: absolute;
+  width: var(--dmo-icon-sm);
+  height: var(--dmo-icon-sm);
+  border: var(--dmo-border-width-strong) solid var(--dmo-text-on-color);
+  border-top-color: transparent;
+  border-radius: var(--dmo-radius-pill);
+  animation: dmo-spin 800ms linear infinite;
+}
+
+@keyframes dmo-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Icon button (reference exact: 36px square). */
+.dmo-icon-button {
+  width: var(--dmo-icon-button-size);
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+
+.dmo-icon-button svg {
+  width: var(--dmo-icon-md);
+  height: var(--dmo-icon-md);
+}
+
+/* Row-action density (reference admin row-actions exact). */
+.dmo-row-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.dmo-row-actions .dmo-button {
+  min-height: var(--dmo-row-action-height);
+  padding: 5px 8px;
+  font-size: var(--dmo-font-size-label);
+}
+
+/* ---------- 2. Field (reference .dmo-field exact) ---------- */
+
+.dmo-field label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--dmo-muted);
+  font-size: var(--dmo-font-size-label);
+  font-weight: 750;
+}
+
+.dmo-field input,
+.dmo-field select,
+.dmo-field textarea {
+  width: 100%;
+  min-height: var(--dmo-control-height);
+  border: var(--dmo-border-width) solid var(--dmo-border);
+  border-radius: var(--dmo-r-control);
+  background: var(--dmo-card);
+  color: var(--dmo-text);
+  padding: 9px 11px;
+  outline: none;
+}
+
+.dmo-field input:focus,
+.dmo-field select:focus,
+.dmo-field textarea:focus {
+  border-color: var(--dmo-brand-600);
+  box-shadow: var(--dmo-focus-halo);
+}
+
+.dmo-field input:read-only,
+.dmo-field textarea:read-only {
+  background: var(--dmo-subtle);
+}
+
+.dmo-field input:disabled,
+.dmo-field select:disabled,
+.dmo-field textarea:disabled {
+  background: var(--dmo-subtle);
+  color: var(--dmo-muted);
+}
+
+.dmo-field.is-error input,
+.dmo-field.is-error select,
+.dmo-field.is-error textarea {
+  border-color: var(--dmo-danger);
+}
+
+.dmo-field__helper {
+  font-size: var(--dmo-font-size-label);
+  color: var(--dmo-muted);
+  margin: 5px 0 0;
+}
+
+.dmo-field__error {
+  font-size: var(--dmo-font-size-xs);
+  color: var(--dmo-danger);
+  margin: 5px 0 0;
+}
+
+/* Reference modal-grid (create/edit form layout). */
+.dmo-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--dmo-space-3);
+}
+
+.dmo-modal-grid .span2 {
+  grid-column: 1 / -1;
+}
+
+/* ---------- 3. Card (reference exact) ---------- */
+
+.dmo-card {
+  background: var(--dmo-card);
+  border: var(--dmo-border-width) solid var(--dmo-border);
+  border-radius: var(--dmo-r-card);
+  box-shadow: var(--dmo-shadow-card);
+}
+
+.dmo-card.is-dirty {
+  border-color: var(--dmo-warning);
+}
+
+/* ---------- 4. Pill / status (reference .dmo-pill exact variants;
+   text + color, never color alone — DMO §16) ---------- */
+
+.dmo-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: var(--dmo-radius-pill);
+  background: var(--dmo-brand-050);
+  color: var(--dmo-brand-700);
+  font-size: var(--dmo-font-size-pill);
+  font-weight: var(--dmo-font-weight-extrabold);
+  white-space: nowrap;
+}
+
+.dmo-pill.active {
+  background: var(--dmo-success-soft);
+  color: var(--dmo-success); /* reference exact token pair */
+}
+
+.dmo-pill.inactive {
+  background: var(--dmo-surface-inactive);
+  color: var(--dmo-muted);
+}
+
+.dmo-pill.pending {
+  background: var(--dmo-pending-soft);
+  color: var(--dmo-pending);
+}
+
+.dmo-pill.approved {
+  background: var(--dmo-success-soft);
+  color: var(--dmo-pill-approved-text); /* reference exact */
+}
+
+.dmo-pill.rejected {
+  background: var(--dmo-danger-soft);
+  color: var(--dmo-danger); /* reference exact token pair */
+}
+
+.dmo-pill.record-type {
+  background: var(--dmo-pill-record-type-bg);
+  color: var(--dmo-pill-record-type-text); /* reference exact pair */
+}
+
+/* ---------- 5. Table (reference .dmo-table exact) ---------- */
+
+.dmo-table-wrap {
+  overflow: auto;
+  border: var(--dmo-border-width) solid var(--dmo-border);
+  border-radius: var(--dmo-r-table);
+}
+
+.dmo-table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+.dmo-table th {
+  background: var(--dmo-subtle);
+  color: var(--dmo-muted);
+  font-size: var(--dmo-font-size-table-head);
+  text-transform: uppercase;
+  text-align: left;
+  padding: 11px 12px;
+}
+
+.dmo-table td {
+  padding: 11px 12px;
+  border-top: var(--dmo-border-width) solid var(--dmo-border);
+}
+
+.dmo-table tr[data-row] {
+  cursor: pointer;
+}
+
+.dmo-table tr[data-row]:hover {
+  background: var(--dmo-page);
+}
+
+.dmo-table tr.selected {
+  background: var(--dmo-brand-100);
+}
+
+/* Table card chrome (reference admin table-card/table-title exact). */
+.dmo-table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.dmo-table-title {
+  padding: 17px 18px;
+  border-bottom: var(--dmo-border-width) solid var(--dmo-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--dmo-space-3);
+}
+
+.dmo-table-title h3 {
+  margin: 0;
+  font-size: var(--dmo-font-size-card-title);
+}
+
+/* ---------- 6. Canonical selectable lists (reference exact) ---------- */
+
+[data-dmo-list] [data-dmo-row] {
+  cursor: pointer;
+  transition: background var(--dmo-transition-fast),
+              border-color var(--dmo-transition-fast);
+}
+
+[data-dmo-list] [data-dmo-row]:hover {
+  background: var(--dmo-page);
+}
+
+[data-dmo-list] [data-dmo-row]:focus-visible {
+  outline: var(--dmo-row-focus-ring);
+  outline-offset: 1px;
+}
+
+[data-dmo-list] [data-dmo-row].selected {
+  background: var(--dmo-brand-100);
+  border-color: var(--dmo-brand-600);
+}
+
+/* ---------- 7. Modal / Confirmation (reference exact anatomy) ---------- */
+
+.dmo-modal-backdrop {
+  display: none;
+  position: fixed;
+  z-index: var(--dmo-z-overlay);
+  inset: 0;
+  background: var(--dmo-overlay-veil);
+  padding: var(--dmo-space-6);
+  align-items: center;
+  justify-content: center;
+}
+
+.dmo-modal-backdrop.open {
+  display: flex;
+}
+
+.dmo-modal {
+  width: min(var(--dmo-modal-width), 100%);
+  max-height: var(--dmo-modal-max-height);
+  display: flex;
+  flex-direction: column;
+  background: var(--dmo-card);
+  border-radius: var(--dmo-r-modal);
+  box-shadow: var(--dmo-shadow-modal);
+}
+
+.dmo-modal-head,
+.dmo-modal-foot {
+  display: flex;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: var(--dmo-border-width) solid var(--dmo-border);
+}
+
+.dmo-modal-head h2 {
+  margin: 0;
+  font-size: var(--dmo-font-size-modal-title);
+}
+
+.dmo-modal-head .dmo-icon-button {
+  margin-left: auto;
+}
+
+.dmo-modal-body {
+  padding: var(--dmo-space-5);
+  overflow: auto;
+}
+
+.dmo-modal-foot {
+  border: 0;
+  border-top: var(--dmo-border-width) solid var(--dmo-border);
+  justify-content: flex-end;
+  gap: var(--dmo-space-2);
+}
+
+/* ---------- 8. Toast (reference exact) ---------- */
+
+.dmo-toast {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: var(--dmo-z-toast);
+  background: var(--dmo-brand-950);
+  color: var(--dmo-text-on-color);
+  padding: 11px 15px;
+  border-radius: var(--dmo-r-toast);
+  box-shadow: var(--dmo-shadow-card);
+  opacity: 0;
+  transform: translateY(50px);
+  transition: var(--dmo-duration-normal) var(--dmo-ease-standard);
+}
+
+.dmo-toast.show {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- 9. Calendar (reference exact states) ---------- */
+
+.dmo-calendar__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--dmo-space-2);
+}
+
+.dmo-calendar__week,
+.dmo-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.dmo-calendar__week {
+  margin-top: var(--dmo-space-3);
+  color: var(--dmo-muted);
+  font-size: var(--dmo-font-size-table-head);
+  font-weight: var(--dmo-font-weight-extrabold);
+  text-align: center;
+}
+
+.dmo-calendar__grid {
+  margin-top: 7px;
+}
+
+.dmo-calendar__day {
+  position: relative;
+  min-height: var(--dmo-calendar-day-min);
+  border: var(--dmo-border-width) solid var(--dmo-border);
+  border-radius: var(--dmo-r-calendar-day);
+  background: var(--dmo-card);
+  color: var(--dmo-text);
+  font-weight: var(--dmo-font-weight-bold);
+  cursor: pointer;
+}
+
+.dmo-calendar__day:hover {
+  border-color: var(--dmo-brand-600);
+  background: var(--dmo-page);
+}
+
+.dmo-calendar__day.has-record::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--dmo-warning);
+  transform: translateX(-50%);
+}
+
+.dmo-calendar__day.selected {
+  background: var(--dmo-brand-600);
+  border-color: var(--dmo-brand-600);
+  color: var(--dmo-text-on-color);
+}
+
+.dmo-calendar__day.selected::after {
+  background: var(--dmo-text-on-color);
+}
+
+.dmo-calendar__day:disabled {
+  visibility: hidden;
+}
+
+/* ---------- 10. Application header (reference exact anatomy) ---------- */
+
+.dmo-app-header {
+  min-height: var(--dmo-header-height);
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 10px 28px;
+  background: var(--dmo-card);
+  border-bottom: var(--dmo-border-width) solid var(--dmo-border);
+}
+
+.dmo-app-header__logo {
+  width: var(--dmo-logo-size);
+  height: var(--dmo-logo-size);
+  object-fit: contain;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.dmo-app-header__page {
+  min-width: 0;
+}
+
+.dmo-app-header__page h1 {
+  margin: 0;
+  color: var(--dmo-text);
+  font-size: var(--dmo-font-size-header-title);
+  line-height: var(--dmo-line-height-tight);
+  font-weight: var(--dmo-font-weight-extrabold);
+}
+
+.dmo-app-header__page p {
+  margin: 3px 0 0;
+  color: var(--dmo-muted);
+  font-size: var(--dmo-font-size-label);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dmo-app-header__user {
+  margin-left: auto;
+  min-width: 150px;
+  padding-left: 18px;
+  text-align: right;
+  border-left: var(--dmo-border-width) solid var(--dmo-border);
+}
+
+.dmo-app-header__user strong {
+  display: block;
+  color: var(--dmo-text);
+  font-size: var(--dmo-font-size-xs);
+  line-height: 1.3;
+}
+
+.dmo-app-header__user span {
+  display: block;
+  margin-top: 2px;
+  color: var(--dmo-muted);
+  font-size: var(--dmo-font-size-label);
+  line-height: 1.3;
+}
+
+.dmo-app-header__user a {
+  display: inline-block;
+  margin-top: var(--dmo-space-1);
+  color: var(--dmo-brand-700);
+  font-size: var(--dmo-font-size-label);
+}
+
+/* ---------- 11. Filter rows + pagination sizing (reference exact rules) ---------- */
+
+.filters > .dmo-button,
+.search > .dmo-button,
+.history-filters > .dmo-button,
+.dmo-filter-row > .dmo-button {
+  min-height: var(--dmo-control-height);
+}
+
+.dmo-pagination > .dmo-icon-button {
+  width: var(--dmo-pagination-size);
+  min-width: var(--dmo-pagination-size);
+  min-height: var(--dmo-pagination-size);
+  height: var(--dmo-pagination-size);
+  padding: 0;
+}
+
+.dmo-pagination {
+  display: flex;
+  align-items: center;
+  gap: var(--dmo-space-3);
+  padding: var(--dmo-space-3) 18px;
+  color: var(--dmo-muted);
+  font-size: var(--dmo-font-size-sm);
+}
+
+/* ---------- 12. Form message (reference login form-message exact) ---------- */
+
+.dmo-form-message {
+  margin-top: var(--dmo-space-3);
+  padding: 10px 12px;
+  border-radius: var(--dmo-r-control);
+  background: var(--dmo-danger-soft);
+  color: var(--dmo-danger);
+  font-size: var(--dmo-font-size-xs);
+}
+
+.dmo-form-message ul {
+  margin: 0;
+  padding-left: var(--dmo-space-4);
+}
+
+/* ============================================================
+   13+. DMO-documented components absent from the reference CSS.
+   Smallest neutral behavior compatible with the reference; each
+   is isolated here for replacement when the reference grows.
+   ============================================================ */
+
+/* Inline notice/alert (pattern taken from reference login .notice). */
+.dmo-alert {
+  display: flex;
+  gap: 10px;
+  background: var(--dmo-brand-050);
+  border-left: 4px solid var(--dmo-brand-600);
+  padding: 11px 13px;
+  border-radius: var(--dmo-r-control);
+  margin-bottom: var(--dmo-space-5);
+}
+
+.dmo-alert.success { background: var(--dmo-success-soft); border-left-color: var(--dmo-success); }
+.dmo-alert.warning { background: var(--dmo-warning-soft); border-left-color: var(--dmo-warning); }
+.dmo-alert.danger { background: var(--dmo-danger-soft); border-left-color: var(--dmo-danger); }
+
+/* Empty / error / loading states (DMO §21: cause + next step; skeleton
+   without layout shift). */
+.dmo-empty-state,
+.dmo-error-state {
+  padding: var(--dmo-space-6);
+  text-align: center;
+  color: var(--dmo-muted);
+}
+
+.dmo-empty-state strong,
+.dmo-error-state strong {
+  display: block;
+  color: var(--dmo-text);
+  margin-bottom: var(--dmo-space-1);
+}
+
+.dmo-skeleton {
+  display: block;
+  min-height: var(--dmo-row-height);
+  border-radius: var(--dmo-r-control);
+  background: var(--dmo-subtle);
+  animation: dmo-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes dmo-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .55; }
+}
+
+/* Segmented selector (DMO §10: selected filled, others outlined). */
+.dmo-segmented {
+  display: inline-flex;
+  border: var(--dmo-border-width) solid var(--dmo-brand-600);
+  border-radius: var(--dmo-r-control);
+  overflow: hidden;
+}
+
+.dmo-segmented__option {
+  min-height: var(--dmo-control-height);
+  padding: 0 var(--dmo-space-4);
+  border: 0;
+  background: var(--dmo-card);
+  color: var(--dmo-brand-600);
+  font-weight: var(--dmo-font-weight-bold);
+  cursor: pointer;
+}
+
+.dmo-segmented__option + .dmo-segmented__option {
+  border-left: var(--dmo-border-width) solid var(--dmo-brand-600);
+}
+
+.dmo-segmented__option[aria-pressed="true"],
+.dmo-segmented__option.is-selected {
+  background: var(--dmo-brand-600);
+  color: var(--dmo-text-on-color);
+}
+
+/* Menu/dropdown surface, tooltip (shadows/surfaces from tokens). */
+.dmo-menu {
+  min-width: var(--dmo-menu-min-width);
+  max-height: var(--dmo-menu-max-height);
+  overflow: auto;
+  padding: var(--dmo-space-1);
+  background: var(--dmo-card);
+  border: var(--dmo-border-width) solid var(--dmo-border);
+  border-radius: var(--dmo-r-control);
+  box-shadow: var(--dmo-shadow-menu);
+  z-index: var(--dmo-z-dropdown);
+}
+
+.dmo-menu__option {
+  display: flex;
+  align-items: center;
+  gap: var(--dmo-space-2);
+  width: 100%;
+  min-height: var(--dmo-control-height-compact);
+  padding: var(--dmo-space-1) var(--dmo-space-3);
+  border: 0;
+  border-radius: var(--dmo-r-control);
+  background: none;
+  color: var(--dmo-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dmo-menu__option:hover,
+.dmo-menu__option:focus-visible {
+  background: var(--dmo-brand-050); /* DMO §11 option hover */
+}
+
+.dmo-menu__option.is-selected {
+  background: var(--dmo-brand-100); /* DMO §11 selected option */
+  color: var(--dmo-brand-700);
+}
+
+.dmo-tooltip {
+  position: absolute;
+  z-index: var(--dmo-z-dropdown);
+  max-width: var(--dmo-tooltip-max-width);
+  padding: var(--dmo-space-1) var(--dmo-space-2);
+  border-radius: var(--dmo-r-control);
+  background: var(--dmo-brand-950);
+  color: var(--dmo-text-on-color);
+  font-size: var(--dmo-font-size-xs);
+}
+
+/* History entry (contract §13 compact row + Anterior/Novo compare). */
+.dmo-history-entry__compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--dmo-space-3);
+  padding: var(--dmo-space-3);
+  background: var(--dmo-subtle);
+  border-radius: var(--dmo-r-control);
+}
+
+/* Read-only resolved path (07_DESIGN §4 item 18). */
+.dmo-path-readonly {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dmo-space-2);
+  min-height: var(--dmo-control-height-compact);
+  padding: 0 var(--dmo-space-3);
+  border: var(--dmo-border-width) solid var(--dmo-border);
+  border-radius: var(--dmo-r-control);
+  background: var(--dmo-subtle);
+  color: var(--dmo-text);
+  font-size: var(--dmo-font-size-sm);
+}
+
+.dmo-path-readonly.is-warning {
+  border-color: var(--dmo-warning);
+  background: var(--dmo-warning-soft);
+}
+
+/* Responsive table behavior (reference exact media rule). */
+@media (max-width: 720px) {
+  .dmo-modal-backdrop {
+    padding: var(--dmo-space-3);
+  }
+
+  .dmo-table {
+    min-width: 760px;
+  }
+}

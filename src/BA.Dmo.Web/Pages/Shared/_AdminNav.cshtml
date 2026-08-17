@@ -1,0 +1,13 @@
+@{
+    // Admin sub-navigation (reference admin-nav exact composition): the
+    // three admin areas + "Voltar ao Job On" right-aligned. Links only —
+    // authorization stays server-side on each page (GLM-ACC-04).
+    var path = Context.Request.Path.Value ?? string.Empty;
+}
+<nav class="admin-nav" aria-label="Administração">
+    <a href="/admin/users" class="@(path.StartsWith("/admin/users", StringComparison.Ordinal) ? "active" : null)">Utilizadores</a>
+    <a href="/admin/templates" class="@(path.StartsWith("/admin/templates", StringComparison.Ordinal) ? "active" : null)">Templates</a>
+    <a href="/admin/applications" class="@(path.StartsWith("/admin/applications", StringComparison.Ordinal) ? "active" : null)">Aplicações</a>
+    <a href="/admin/audit" class="@(path.StartsWith("/admin/audit", StringComparison.Ordinal) ? "active" : null)">Auditoria</a>
+    <a class="back" href="/jobon">Voltar ao Job On</a>
+</nav>

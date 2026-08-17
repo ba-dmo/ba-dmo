@@ -2,77 +2,132 @@
 @model BA.Dmo.Web.Pages.Admin.Audit.IndexModel
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.AdminPolicies.AuditView)]
 @{
-    ViewData["Title"] = "Auditoria";
+    ViewData["Title"] = "Administração";
+
+    string PillForResult(string result) => result switch
+    {
+        "succeeded" => "dmo-pill active",
+        "corrected" => "dmo-pill",
+        _ => "dmo-pill rejected"
+    };
+
+    string LabelForResult(string result) => result switch
+    {
+        "succeeded" => "Sucesso",
+        "failed" => "Falha",
+        "denied" => "Negado",
+        "corrected" => "Corrigida",
+        _ => result
+    };
 }
-<main>
-        <h1>Auditoria</h1>
-        <p><a href="/admin">Administração</a></p>
-        <div asp-validation-summary="All"></div>
-        <form method="get">
-            <label for="year">Ano</label>
-            <input id="year" name="year" type="number" value="@Model.Year" />
-            <label for="actor">Utilizador</label>
-            <input id="actor" name="actor" type="text" value="@Model.Actor" />
-            <label for="module">Módulo</label>
-            <input id="module" name="module" type="text" value="@Model.Module" />
-            <label for="action">Ação</label>
-            <input id="action" name="action" type="text" value="@Model.Action" />
-            <label for="result">Resultado</label>
-            <select id="result" name="result">
-                <option value="">— todos —</option>
-                @foreach (var option in new[] { "succeeded", "failed", "denied", "corrected" })
-                {
-                    <option value="@option" selected="@(Model.Result == option)">@option</option>
-                }
-            </select>
-            <label for="pageSize">Por página</label>
-            <select id="pageSize" name="pageSize">
-                @foreach (var size in new[] { 20, 40, 60 })
-                {
-                    <option value="@size" selected="@(Model.PageSize == size)">@size</option>
-                }
-            </select>
-            <button type="submit">Filtrar</button>
-            <button type="submit" asp-page-handler="Export"
-                    title="Requer audit.export">Exportar (CSV)</button>
-        </form>
-        @if (Model.Events is not null)
-        {
-            <p>@Model.Events.TotalCount evento(s); página @Model.Events.Page.</p>
-            <table>
+<partial name="_AdminNav" />
+<div class="dmo-page-head">
+    <div>
+        <h2>Auditoria de ações</h2>
+        <p>Histórico anual de ações executadas pelos utilizadores em todos os módulos.</p>
+    </div>
+</div>
+<div asp-validation-summary="All" class="dmo-form-message"></div>
+<form method="get" class="audit-filters audit-filters--auto dmo-card">
+    <div class="dmo-field">
+        <label for="year">Ano</label>
+        <input id="year" name="year" type="number" value="@Model.Year" />
+    </div>
+    <div class="dmo-field">
+        <label for="actor">Utilizador</label>
+        <input id="actor" name="actor" type="text" value="@Model.Actor" />
+    </div>
+    <div class="dmo-field">
+        <label for="module">Módulo</label>
+        <input id="module" name="module" type="text" value="@Model.Module" />
+    </div>
+    <div class="dmo-field">
+        <label for="action">Ação</label>
+        <input id="action" name="action" type="text" value="@Model.Action" />
+    </div>
+    <div class="dmo-field">
+        <label for="result">Resultado</label>
+        <select id="result" name="result">
+            <option value="">Todos</option>
+            @foreach (var option in new[] { "succeeded", "failed", "denied", "corrected" })
+            {
+                <option value="@option" selected="@(Model.Result == option)">@LabelForResult(option)</option>
+            }
+        </select>
+    </div>
+    <div class="dmo-field">
+        <label for="pageSize">Linhas</label>
+        <select id="pageSize" name="pageSize">
+            @foreach (var size in new[] { 20, 40, 60 })
+            {
+                <option value="@size" selected="@(Model.PageSize == size)">@size</option>
+            }
+        </select>
+    </div>
+    <button type="submit" class="dmo-button">Filtrar</button>
+    @* Export POSTs the same filter values to the Export handler
+       (formmethod override; asp-page-handler alone per the known
+       tag-helper formaction constraint). Requires audit.export. *@
+    <button type="submit" class="dmo-button" formmethod="post" asp-page-handler="Export"
+            title="Requer audit.export">Exportar registo anual</button>
+</form>
+@if (Model.Events is not null)
+{
+    var totalPages = Math.Max(1, (int)Math.Ceiling(Model.Events.TotalCount / (double)Model.Events.PageSize));
+    var query = $"year={Model.Year}&actor={Uri.EscapeDataString(Model.Actor ?? string.Empty)}&module={Uri.EscapeDataString(Model.Module ?? string.Empty)}&action={Uri.EscapeDataString(Model.Action ?? string.Empty)}&result={Uri.EscapeDataString(Model.Result ?? string.Empty)}&pageSize={Model.PageSize}";
+    <div class="dmo-card dmo-table-card">
+        <div class="dmo-table-title">
+            <div>
+                <h3>Registo de @(Model.Year ?? 0)</h3>
+                <p class="dmo-field__helper">Um clique seleciona; duplo clique não tem detalhe adicional nesta vista.</p>
+            </div>
+            <span class="dmo-pill">@Model.Events.TotalCount ação(ões)</span>
+        </div>
+        <div class="dmo-table-wrap">
+            <table class="dmo-table">
                 <thead>
                     <tr>
-                        <th>Data (UTC)</th>
-                        <th>Ano</th>
+                        <th>Data/hora (UTC)</th>
                         <th>Utilizador</th>
                         <th>Módulo</th>
                         <th>Ação</th>
-                        <th>Entidade</th>
+                        <th>Registo</th>
                         <th>Resultado</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody data-dmo-list>
                     @foreach (var row in Model.Events.Rows)
                     {
-                        <tr>
-                            <td>@row.OccurredAtUtc.UtcDateTime.ToString("yyyy-MM-dd HH:mm")</td>
-                            <td>@row.Year</td>
-                            <td>@row.ActorNameSnapshot (@row.ActorUserId)</td>
+                        <tr data-dmo-row data-id="@row.EntityId" aria-selected="false">
+                            <td>@row.OccurredAtUtc.UtcDateTime.ToString("dd/MM/yyyy · HH:mm")</td>
+                            <td>@(row.ActorNameSnapshot ?? row.ActorUserId ?? "—")</td>
                             <td>@row.ModuleId</td>
                             <td>@row.ActionCode</td>
-                            <td>@row.EntityType/@row.EntityId</td>
-                            <td>@row.Result</td>
+                            <td>@row.EntityType · @row.EntityId</td>
+                            <td><span class="@PillForResult(row.Result)">@LabelForResult(row.Result)</span></td>
                         </tr>
                     }
                 </tbody>
             </table>
+        </div>
+        <div class="dmo-pagination">
+            <span>@Model.Events.TotalCount registo(s) · Página @Model.Events.Page de @totalPages</span>
             @if (Model.Events.Page > 1)
             {
-                <a href="/admin/audit?year=@Model.Year&actor=@Model.Actor&module=@Model.Module&action=@Model.Action&result=@Model.Result&pageSize=@Model.PageSize&page=@(Model.Events.Page - 1)">Anterior</a>
+                <a class="dmo-button dmo-icon-button" href="/admin/audit?@query&page=@(Model.Events.Page - 1)" aria-label="Página anterior">‹</a>
+            }
+            else
+            {
+                <button class="dmo-button dmo-icon-button" disabled aria-label="Página anterior">‹</button>
             }
             @if (Model.Events.Page * Model.Events.PageSize < Model.Events.TotalCount)
             {
-                <a href="/admin/audit?year=@Model.Year&actor=@Model.Actor&module=@Model.Module&action=@Model.Action&result=@Model.Result&pageSize=@Model.PageSize&page=@(Model.Events.Page + 1)">Seguinte</a>
+                <a class="dmo-button dmo-icon-button" href="/admin/audit?@query&page=@(Model.Events.Page + 1)" aria-label="Página seguinte">›</a>
             }
-        }
-</main>
+            else
+            {
+                <button class="dmo-button dmo-icon-button" disabled aria-label="Página seguinte">›</button>
+            }
+        </div>
+    </div>
+}

@@ -1,24 +1,31 @@
 @inject BA.Dmo.Application.Shared.Shell.IShellService Shell
 @{
-    // Global header (GLM-SHL-02): brand + user identity (display name and
-    // profile_title — presentation only, never a permission source, UD-02)
-    // + account trigger with logout (GLM-SHL-07). Without a resolved internal
-    // identity the frame stays minimal (fail-closed safe state).
+    // Global header — reference dmo-app-header anatomy (DMO §6): logo +
+    // page identity + user block (name + profile_title, presentation only,
+    // UD-02) with the account trigger. Derivation/grants untouched (U-07).
     var shell = Shell.Current;
+    var pageTitle = ViewData["Title"] as string;
 }
-<header class="app-header">
-    <span class="app-brand">BA DMO</span>
+<header class="app-header dmo-app-header">
+    <a class="app-brand" href="/" aria-label="BA DMO — início">
+        <img class="dmo-app-header__logo" src="~/assets/ba-logo.png" alt="BA" />
+        BA DMO
+    </a>
+    @if (!string.IsNullOrWhiteSpace(pageTitle))
+    {
+        <div class="dmo-app-header__page">
+            <h1>@pageTitle</h1>
+        </div>
+    }
     @if (shell is not null)
     {
-        <span class="app-user" data-testid="shell-user">
-            @shell.DisplayName
+        <div class="dmo-app-header__user" data-testid="shell-user">
+            <strong data-user-profile-name>@shell.DisplayName</strong>
             @if (!string.IsNullOrWhiteSpace(shell.ProfileTitle))
             {
-                <span class="app-user-profile" data-testid="shell-profile-title">(@shell.ProfileTitle)</span>
+                <span data-user-profile-title data-testid="shell-profile-title">@shell.ProfileTitle</span>
             }
-        </span>
-        <nav class="app-account" aria-label="Conta">
             <a href="/logout" data-testid="shell-logout">Terminar sessão</a>
-        </nav>
+        </div>
     }
 </header>

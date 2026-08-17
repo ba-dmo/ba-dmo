@@ -4,13 +4,20 @@
 @{
     ViewData["Title"] = "Administração";
 }
-<main>
-        <h1>Administração</h1>
-        <ul>
-            <li><a href="/admin/users">Utilizadores internos</a></li>
-            <li><a href="/admin/templates">Templates de acesso</a></li>
-            <li><a href="/admin/applications">Aplicações (catálogo)</a></li>
-            <li><a href="/admin/audit">Auditoria</a></li>
-        </ul>
-        <p><a href="/jobon">Voltar ao Job On</a></p>
-</main>
+<partial name="_AdminNav" />
+<div class="dmo-page-head">
+    <div>
+        <h2>Administração</h2>
+        <p>Gestão de utilizadores, templates de acesso, aplicações e auditoria.</p>
+    </div>
+</div>
+<div class="dmo-card">
+    <div class="dmo-modal-body">
+        <div class="dmo-row-actions">
+            <a class="dmo-button" href="/admin/users">Utilizadores internos</a>
+            <a class="dmo-button" href="/admin/templates">Templates de acesso</a>
+            <a class="dmo-button" href="/admin/applications">Aplicações (catálogo)</a>
+            <a class="dmo-button" href="/admin/audit">Auditoria</a>
+        </div>
+    </div>
+</div>

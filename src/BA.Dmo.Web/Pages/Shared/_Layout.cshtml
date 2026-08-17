@@ -1,8 +1,9 @@
 @{
     // Single application frame (Plan-V3 GLM-SHL-01/02). Identity and tabs are
     // DERIVED server-side from the resolved grants (GLM-SHL-03) — nothing here
-    // trusts the client. Visual design tokens arrive with U-08/U-09; this shell
-    // is semantic markup only.
+    // trusts the client. Visual foundation (U-08): dmo-design-system styles,
+    // canonical load order tokens → foundation → components → layout →
+    // utilities (contract §3.2); no page-local design CSS.
     var title = ViewData["Title"] is string pageTitle && pageTitle.Length > 0
         ? $"BA DMO — {pageTitle}"
         : "BA DMO";
@@ -18,6 +19,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@title</title>
+    <link rel="stylesheet" href="~/styles/dmo-tokens.css" />
+    <link rel="stylesheet" href="~/styles/dmo-foundation.css" />
+    <link rel="stylesheet" href="~/styles/dmo-components.css" />
+    <link rel="stylesheet" href="~/styles/dmo-layout.css" />
+    <link rel="stylesheet" href="~/styles/dmo-utilities.css" />
 </head>
 <body>
     <partial name="_Header" />
@@ -31,5 +37,8 @@
         }
         @RenderBody()
     </main>
+    @* Canonical interaction contract (U-08): click selects / double click
+       opens; calendar day selection; password reveal. No domain logic. *@
+    <script src="~/scripts/dmo-interactions.js" defer></script>
 </body>
 </html>

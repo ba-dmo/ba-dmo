@@ -156,6 +156,9 @@ builder.Services.AddScoped<GrantNormalizer>(_ =>
 
 var app = builder.Build();
 
+// Design system assets (U-08): the single global stylesheet set served to
+// every page; no page-local design CSS exists (GLM-DSN-09).
+app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
