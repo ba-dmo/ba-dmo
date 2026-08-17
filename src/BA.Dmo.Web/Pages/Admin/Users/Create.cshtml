@@ -1,0 +1,40 @@
+@page "/admin/users/create"
+@model BA.Dmo.Web.Pages.Admin.Users.CreateModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.AdminPolicies.AdminGerir)]
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BA DMO — Criar utilizador</title>
+</head>
+<body>
+    <main>
+        <h1>Criar utilizador interno</h1>
+        <p><a href="/admin/users">Voltar à lista</a></p>
+        <div asp-validation-summary="All"></div>
+        <form method="post">
+            <label for="email">Email (conta Auth)</label>
+            <input id="email" name="email" type="email" required value="@Model.Input.Email" />
+            <label for="password">Palavra-passe inicial</label>
+            <input id="password" name="password" type="password" required autocomplete="new-password" />
+            <label for="displayName">Nome</label>
+            <input id="displayName" name="displayName" type="text" required value="@Model.Input.DisplayName" />
+            <label for="profileTitle">Título/função (apenas visual)</label>
+            <input id="profileTitle" name="profileTitle" type="text" value="@Model.Input.ProfileTitle" />
+            <label for="templateId">Template de acesso</label>
+            <select id="templateId" name="templateId" required>
+                <option value="">— escolher —</option>
+                @foreach (var template in Model.Templates)
+                {
+                    <option value="@template.TemplateId" selected="@(Model.Input.TemplateId == template.TemplateId)">
+                        @template.Name (@(template.Active ? "ativo" : "inativo"))
+                    </option>
+                }
+            </select>
+            <button type="submit">Criar</button>
+            <a href="/admin/users">Cancelar</a>
+        </form>
+    </main>
+</body>
+</html>

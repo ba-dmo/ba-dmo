@@ -1,0 +1,23 @@
+@page "/admin"
+@model BA.Dmo.Web.Pages.Admin.IndexModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.AdminPolicies.AdminGerir)]
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BA DMO — Administração</title>
+</head>
+<body>
+    <main>
+        <h1>Administração</h1>
+        <ul>
+            <li><a href="/admin/users">Utilizadores internos</a></li>
+            <li><a href="/admin/templates">Templates de acesso</a></li>
+            <li><a href="/admin/applications">Aplicações (catálogo)</a></li>
+            <li><a href="/admin/audit">Auditoria</a></li>
+        </ul>
+        <p><a href="/jobon">Voltar ao Job On</a></p>
+    </main>
+</body>
+</html>

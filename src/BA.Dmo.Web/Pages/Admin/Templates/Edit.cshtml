@@ -1,0 +1,63 @@
+@page "/admin/templates/edit"
+@model BA.Dmo.Web.Pages.Admin.Templates.EditModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.AdminPolicies.AdminGerir)]
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BA DMO — Template de acesso</title>
+</head>
+<body>
+    <main>
+        <h1>@(Model.IsNew ? "Criar template" : "Editar template")</h1>
+        <p><a href="/admin/templates">Voltar à lista</a></p>
+        <div asp-validation-summary="All"></div>
+        <form method="post">
+            @if (Model.IsNew)
+            {
+                <label for="templateId">Identificador</label>
+                <input id="templateId" name="templateId" type="text" required value="@Model.TemplateId" />
+            }
+            else
+            {
+                <input type="hidden" name="templateId" value="@Model.TemplateId" />
+                <input type="hidden" name="version" value="@Model.Version.ToString("O")" />
+            }
+            <label for="name">Nome</label>
+            <input id="name" name="name" type="text" required value="@Model.Name" />
+            <label for="active">
+                <input id="active" name="active" type="checkbox" value="true" checked="@Model.Active" />
+                Ativo
+            </label>
+            <h2>Módulos e capabilities</h2>
+            <p>Apenas entradas do catálogo canónico; capabilities fora do módulo dono são rejeitadas.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Módulo</th>
+                        <th>Conceder</th>
+                        <th>Capabilities (separadas por vírgula)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (var i = 0; i < Model.Lines.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                @Model.Lines[i].DisplayName
+                                <input type="hidden" name="lines[@i].ModuleId" value="@Model.Lines[i].ModuleId" />
+                                <input type="hidden" name="lines[@i].DisplayName" value="@Model.Lines[i].DisplayName" />
+                            </td>
+                            <td><input type="checkbox" name="lines[@i].Granted" value="true" checked="@Model.Lines[i].Granted" /></td>
+                            <td><input type="text" name="lines[@i].Capabilities" value="@Model.Lines[i].Capabilities" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <button type="submit">Guardar</button>
+            <a href="/admin/templates">Cancelar</a>
+        </form>
+    </main>
+</body>
+</html>

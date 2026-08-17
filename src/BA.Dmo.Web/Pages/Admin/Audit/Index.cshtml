@@ -1,0 +1,85 @@
+@page "/admin/audit"
+@model BA.Dmo.Web.Pages.Admin.Audit.IndexModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.AdminPolicies.AuditView)]
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BA DMO — Auditoria</title>
+</head>
+<body>
+    <main>
+        <h1>Auditoria</h1>
+        <p><a href="/admin">Administração</a></p>
+        <div asp-validation-summary="All"></div>
+        <form method="get">
+            <label for="year">Ano</label>
+            <input id="year" name="year" type="number" value="@Model.Year" />
+            <label for="actor">Utilizador</label>
+            <input id="actor" name="actor" type="text" value="@Model.Actor" />
+            <label for="module">Módulo</label>
+            <input id="module" name="module" type="text" value="@Model.Module" />
+            <label for="action">Ação</label>
+            <input id="action" name="action" type="text" value="@Model.Action" />
+            <label for="result">Resultado</label>
+            <select id="result" name="result">
+                <option value="">— todos —</option>
+                @foreach (var option in new[] { "succeeded", "failed", "denied", "corrected" })
+                {
+                    <option value="@option" selected="@(Model.Result == option)">@option</option>
+                }
+            </select>
+            <label for="pageSize">Por página</label>
+            <select id="pageSize" name="pageSize">
+                @foreach (var size in new[] { 20, 40, 60 })
+                {
+                    <option value="@size" selected="@(Model.PageSize == size)">@size</option>
+                }
+            </select>
+            <button type="submit">Filtrar</button>
+            <button type="submit" asp-page-handler="Export"
+                    title="Requer audit.export">Exportar (CSV)</button>
+        </form>
+        @if (Model.Events is not null)
+        {
+            <p>@Model.Events.TotalCount evento(s); página @Model.Events.Page.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data (UTC)</th>
+                        <th>Ano</th>
+                        <th>Utilizador</th>
+                        <th>Módulo</th>
+                        <th>Ação</th>
+                        <th>Entidade</th>
+                        <th>Resultado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Events.Rows)
+                    {
+                        <tr>
+                            <td>@row.OccurredAtUtc.UtcDateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@row.Year</td>
+                            <td>@row.ActorNameSnapshot (@row.ActorUserId)</td>
+                            <td>@row.ModuleId</td>
+                            <td>@row.ActionCode</td>
+                            <td>@row.EntityType/@row.EntityId</td>
+                            <td>@row.Result</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            @if (Model.Events.Page > 1)
+            {
+                <a href="/admin/audit?year=@Model.Year&actor=@Model.Actor&module=@Model.Module&action=@Model.Action&result=@Model.Result&pageSize=@Model.PageSize&page=@(Model.Events.Page - 1)">Anterior</a>
+            }
+            @if (Model.Events.Page * Model.Events.PageSize < Model.Events.TotalCount)
+            {
+                <a href="/admin/audit?year=@Model.Year&actor=@Model.Actor&module=@Model.Module&action=@Model.Action&result=@Model.Result&pageSize=@Model.PageSize&page=@(Model.Events.Page + 1)">Seguinte</a>
+            }
+        }
+    </main>
+</body>
+</html>

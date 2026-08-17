@@ -1,0 +1,59 @@
+@page "/admin/users/edit"
+@model BA.Dmo.Web.Pages.Admin.Users.EditModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.AdminPolicies.AdminGerir)]
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BA DMO — Editar utilizador</title>
+</head>
+<body>
+    <main>
+        <h1>Editar utilizador interno</h1>
+        <p><a href="/admin/users">Voltar à lista</a></p>
+        @if (Model.Entry is null)
+        {
+            <p>Utilizador não encontrado.</p>
+        }
+        else
+        {
+            <div asp-validation-summary="All"></div>
+            @if (!string.IsNullOrEmpty(Model.Feedback))
+            {
+                <p role="status">@Model.Feedback</p>
+            }
+            <form method="post" asp-page-handler="Save">
+                <input type="hidden" name="id" value="@Model.Entry.ActorId" />
+                <input type="hidden" name="version" value="@Model.Entry.UpdatedAtUtc.ToString("O")" />
+                <label for="displayName">Nome</label>
+                <input id="displayName" name="displayName" type="text" required value="@Model.Entry.DisplayName" />
+                <label for="profileTitle">Título/função (apenas visual; não concede permissões)</label>
+                <input id="profileTitle" name="profileTitle" type="text" value="@Model.Entry.ProfileTitle" />
+                <label for="templateId">Template de acesso</label>
+                <select id="templateId" name="templateId" required>
+                    @foreach (var template in Model.Templates)
+                    {
+                        <option value="@template.TemplateId" selected="@(Model.Entry.TemplateId == template.TemplateId)">
+                            @template.Name (@(template.Active ? "ativo" : "inativo"))
+                        </option>
+                    }
+                </select>
+                <label for="active">
+                    <input id="active" name="active" type="checkbox" value="true" checked="@Model.Entry.Active" />
+                    Ativo
+                </label>
+                <button type="submit">Guardar</button>
+                <a href="/admin/users">Cancelar</a>
+            </form>
+            <form method="post" asp-page-handler="ResetPassword">
+                <input type="hidden" name="id" value="@Model.Entry.ActorId" />
+                <button type="submit"
+                        onclick="return confirm('Iniciar reset de palavra-passe para este utilizador?');">
+                    Iniciar reset de palavra-passe
+                </button>
+            </form>
+        }
+    </main>
+</body>
+</html>

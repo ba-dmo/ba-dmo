@@ -1,0 +1,40 @@
+@page "/admin/templates"
+@model BA.Dmo.Web.Pages.Admin.Templates.IndexModel
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = BA.Dmo.Web.Authorization.AdminPolicies.AdminGerir)]
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BA DMO — Templates de acesso</title>
+</head>
+<body>
+    <main>
+        <h1>Templates de acesso</h1>
+        <p><a href="/admin">Administração</a></p>
+        <p>Os grants são validados contra o catálogo canónico; entradas desconhecidas são rejeitadas.</p>
+        <p><a href="/admin/templates/edit">Criar template</a></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Identificador</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var template in Model.Templates)
+                {
+                    <tr>
+                        <td>@template.Name</td>
+                        <td>@template.TemplateId</td>
+                        <td>@(template.Active ? "Ativo" : "Inativo")</td>
+                        <td><a href="/admin/templates/edit?id=@Uri.EscapeDataString(template.TemplateId)">Editar</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>

@@ -120,6 +120,10 @@ public class BootstrapAdminServiceTests
                 : Task.FromResult(Result<AuthUser, DomainError>.Success(
                     new AuthUser(ProvisionedAuthUserId, email)));
         }
+
+        public Task<Result<bool, DomainError>> RequestPasswordResetAsync(
+            Guid authUserId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(Result<bool, DomainError>.Success(true));
     }
 
     private sealed class FakeInternalUserRepository : IInternalUserRepository

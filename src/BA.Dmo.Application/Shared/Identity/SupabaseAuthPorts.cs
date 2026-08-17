@@ -45,4 +45,14 @@ public interface IAdminProvisioningAdapter
         string email,
         string password,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Initiates an admin-driven password reset for an existing Auth account
+    /// (04_ACC §9). Explicit confirmation happens in the Admin use case; the
+    /// current password is never retrieved or shown; no secret value may
+    /// reach audit logs or responses.
+    /// </summary>
+    Task<Result<bool, DomainError>> RequestPasswordResetAsync(
+        Guid authUserId,
+        CancellationToken cancellationToken = default);
 }

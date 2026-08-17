@@ -101,6 +101,82 @@ public sealed class SupabaseAdminProvisioningAdapter : IAdminProvisioningAdapter
         }
     }
 
+    public async Task<Result<bool, DomainError>> RequestPasswordResetAsync(
+        Guid authUserId,
+        CancellationToken cancellationToken = default)
+    {
+        if (_supabaseUrl is null || _serviceRoleKey is null)
+            return Result<bool, DomainError>.Failure(MissingConfiguration());
+
+        if (authUserId == Guid.Empty)
+            return Result<bool, DomainError>.Failure(DomainError.Validation(
+                "BOOTSTRAP_CONFIGURATION_MISSING",
+                "Password reset requires an explicit auth user id."));
+
+        // 1. Resolve the account email (privileged lookup).
+        using (var lookup = new HttpRequestMessage(
+                   HttpMethod.Get, $"{_supabaseUrl}/auth/v1/admin/users/{authUserId}"))
+        {
+            AddPrivilegedHeaders(lookup);
+
+            HttpResponseMessage lookupResponse;
+            try
+            {
+                lookupResponse = await _httpClient.SendAsync(lookup, cancellationToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                return Result<bool, DomainError>.Failure(ProviderUnavailable());
+            }
+
+            string email;
+            using (lookupResponse)
+            {
+                if (!lookupResponse.IsSuccessStatusCode)
+                    return Result<bool, DomainError>.Failure(ProvisioningFailed());
+
+                try
+                {
+                    var user = await lookupResponse.Content.ReadFromJsonAsync<UserPayload>(
+                        cancellationToken: cancellationToken);
+                    if (string.IsNullOrWhiteSpace(user?.Email))
+                        return Result<bool, DomainError>.Failure(ProvisioningFailed());
+                    email = user.Email;
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    return Result<bool, DomainError>.Failure(ProvisioningFailed());
+                }
+            }
+
+            // 2. Request a recovery link for that account. The link/secret
+            //    material is never returned, logged or audited.
+            using var reset = new HttpRequestMessage(
+                HttpMethod.Post, $"{_supabaseUrl}/auth/v1/admin/generate_link")
+            {
+                Content = JsonContent.Create(new { type = "recovery", email })
+            };
+            AddPrivilegedHeaders(reset);
+
+            HttpResponseMessage resetResponse;
+            try
+            {
+                resetResponse = await _httpClient.SendAsync(reset, cancellationToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                return Result<bool, DomainError>.Failure(ProviderUnavailable());
+            }
+
+            using (resetResponse)
+            {
+                return resetResponse.IsSuccessStatusCode
+                    ? Result<bool, DomainError>.Success(true)
+                    : Result<bool, DomainError>.Failure(ProvisioningFailed());
+            }
+        }
+    }
+
     private async Task<Result<AuthUser, DomainError>> FindExistingAsync(
         string email,
         CancellationToken cancellationToken)

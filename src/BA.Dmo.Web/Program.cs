@@ -1,8 +1,10 @@
+using BA.Dmo.Application.Modules.Admin;
 using BA.Dmo.Application.Shared.Access;
 using BA.Dmo.Application.Shared.Identity;
 using BA.Dmo.Application.Shared.Persistence;
 using BA.Dmo.Domain.Shared.Access;
 using BA.Dmo.Domain.Shared.Kernel;
+using BA.Dmo.Infrastructure.Access;
 using BA.Dmo.Infrastructure.Auth;
 using BA.Dmo.Infrastructure.Identity;
 using BA.Dmo.Infrastructure.Persistence;
@@ -69,8 +71,21 @@ builder.Services.AddAuthorization(options =>
         .AddAuthenticationSchemes(SessionClaims.AuthenticationScheme)
         .AddRequirements(new AuthenticatedSessionRequirement())
         .Build();
+
+    // Administration policies (U-06): canonical capabilities only — never
+    // role names, emails or template names (GLM-ACC-03/04).
+    options.AddPolicy(AdminPolicies.AdminGerir, policy => policy
+        .AddAuthenticationSchemes(SessionClaims.AuthenticationScheme)
+        .AddRequirements(new CapabilityRequirement(CanonicalCapabilities.AdminGerir)));
+    options.AddPolicy(AdminPolicies.AuditView, policy => policy
+        .AddAuthenticationSchemes(SessionClaims.AuthenticationScheme)
+        .AddRequirements(new CapabilityRequirement(CanonicalCapabilities.AuditView)));
+    options.AddPolicy(AdminPolicies.AuditExport, policy => policy
+        .AddAuthenticationSchemes(SessionClaims.AuthenticationScheme)
+        .AddRequirements(new CapabilityRequirement(CanonicalCapabilities.AuditExport)));
 });
 builder.Services.AddSingleton<IAuthorizationHandler, AuthenticatedSessionHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, CapabilityAuthorizationHandler>();
 
 builder.Services.AddSingleton<IClock>(SystemClock.Instance);
 builder.Services.AddSingleton<IDbConnectionFactory>(
@@ -88,6 +103,27 @@ builder.Services.AddSingleton<ISupabaseAuthAdapter>(_ => new SupabaseAuthAdapter
     new HttpClient(),
     SupabaseSettings.ResolveUrl(Environment.GetEnvironmentVariable),
     SupabaseSettings.ResolveAnonKey(Environment.GetEnvironmentVariable)));
+
+// Administration module (U-06): Application services + persistence port.
+// The privileged provisioning adapter is registered fail-closed: without the
+// service-role environment configuration it rejects every operation, and it
+// is only reachable through admin.gerir-gated use cases (TD-16) or the
+// bootstrap-admin CLI — never exposed to the browser (PV-07).
+builder.Services.AddSingleton<IAdminProvisioningAdapter>(_ =>
+    new SupabaseAdminProvisioningAdapter(
+        new HttpClient(),
+        SupabaseSettings.ResolveUrl(Environment.GetEnvironmentVariable),
+        SupabaseSettings.ResolveServiceRoleKey(Environment.GetEnvironmentVariable)));
+builder.Services.AddSingleton<IAdminRepository, DapperAdminRepository>();
+builder.Services.AddSingleton<IModuleCatalogMirrorRepository, DapperModuleCatalogMirrorRepository>();
+builder.Services.AddSingleton(CanonicalModuleCatalog.Instance);
+builder.Services.AddScoped<AdminAuthorizationGate>();
+builder.Services.AddScoped<AdminUserService>();
+builder.Services.AddScoped<AdminTemplateService>();
+builder.Services.AddScoped<AdminMirrorService>();
+builder.Services.AddScoped<AdminAuditService>();
+builder.Services.AddScoped<GrantNormalizer>(_ =>
+    new GrantNormalizer(CanonicalModuleCatalog.Instance));
 
 var app = builder.Build();
 
